@@ -1,0 +1,6 @@
+static/yandex_api_key.txt
+*.db
+.vscode/
+.idea/
+__pycache__/
+.DS_Store
