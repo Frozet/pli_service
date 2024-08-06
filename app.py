@@ -1,0 +1,191 @@
+from flask import Flask, render_template, redirect, url_for, request, session
+import sqlite3
+import hashlib
+from datetime import datetime, date
+
+app = Flask(__name__)
+app.secret_key = 'secret_key'  # тут секретный ключ
+# секретный ключ для хеширования данных сессии при авторизации
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db') # Позволяет извлекать данные как словари
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def get_diagnostics():
+    conn = get_db_connection() 
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM diagnostics")
+    diagnostics = cursor.fetchall()
+    conn.close()
+    return diagnostics
+
+def get_yandex_api_key():
+    with open('static/yandex_api_key.txt', 'r') as f:
+        yandex_api_key = f.readline()
+    return yandex_api_key
+
+# Главная страница
+@app.route('/index')
+def index():
+    yandex_api_key = get_yandex_api_key()
+    return render_template('index.html', yandex_api_key=yandex_api_key)
+
+# Страница формы логина в админ панель
+@app.route('/adm_login', methods=['GET', 'POST'])
+def admin_login():
+    error = None  # обнуляем переменную ошибок
+    if request.method == 'POST':
+        username = request.form['username']  # обрабатываем запрос с нашей формы который имеет атрибут name="username"
+        password = request.form['password']  # обрабатываем запрос с нашей формы который имеет атрибут name="password"
+        hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()  # шифруем пароль в sha-256
+
+        # устанавливаем соединение с БД
+        conn = get_db_connection()
+        # создаем запрос для поиска пользователя по username,
+        # если такой пользователь существует, то получаем все данные id, password
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        # закрываем подключение БД
+        conn.close()
+
+        # теперь проверяем если данные сходятся формы с данными БД
+        if user and user['password'] == hashed_password:
+            # в случае успеха создаем сессию в которую записываем id пользователя
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            # и делаем переадресацию пользователя на новую страницу -> в нашу адимнку
+            return redirect(url_for('index'))
+
+        else:
+            error = 'Неправильное имя пользователя или пароль'
+
+    return render_template('login_adm.html', error=error)
+
+@app.route('/logout')
+def logout():
+    # Удаление данных пользователя из сессии
+    session.clear()
+    # Перенаправление на главную страницу или страницу входа
+    return redirect(url_for('index'))
+
+# Страница админ панели
+@app.route('/admin_panel')
+def admin_panel():
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('admin_login'))
+    
+    user_name = session['username']
+    role = session['role']
+    if role == 'Admin':
+        return render_template('admin_panel.html', role=role)
+    else:
+        return render_template('user_panel.html', user_name=user_name, role=role)
+
+# Страница аккаунта обычного пользователя
+@app.route('/user_panel.html')
+def user_panel():
+    if 'user_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    user_name = session['username'] 
+    role = session['role']
+    return render_template('user_panel.html', user_name=user_name, role=role)
+
+# Добавление диагностики
+@app.route('/add_diagnostic')
+def add_diagnostic():
+    if 'user_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    user_name = session['username']
+    return render_template('add_panel.html', user_name=user_name)
+
+# Страница успешного добавления диагностики
+@app.route('/submit_form', methods=['GET', 'POST'])
+def submit_diagnostic():
+    error = None  # обнуляем переменную ошибок
+    if request.method == 'POST':
+
+        line = ''
+        for i, j in request.form.items():
+            line = line + i + ': ' + j + ', '
+        
+        diagnostic_name = request.form['name']
+        diagnostic_type = request.form['type']
+        diagnostic_date = request.form['date']
+        diagnostic_diameter = request.form['diameter']
+        diagnostic_material = request.form['material']
+        diagnostic_distance = request.form['distance']
+        diagnostic_author = request.form['author']
+        diagnostic_timestampdata = datetime.now()
+        
+        # Обработка колодцев, пролета и других данных
+        diagnostic_wells = []
+        diagnostic_spans = []
+        diagnostic_slopes = []
+        diagnostic_flows = []
+        diagnostic_problems = []
+        diagnostic_problem_distances = []
+
+        for key in request.form.keys():
+            if key.startswith('well'):
+                diagnostic_wells.append(request.form[key])
+            elif key.startswith('span_'):
+                diagnostic_spans.append(request.form[key])
+            elif key.startswith('slope_'):
+                diagnostic_slopes.append(request.form[key])
+            elif key.startswith('flow_'):
+                diagnostic_flows.append(request.form[key])
+            elif key.startswith('problem_'):
+                diagnostic_problems.append(request.form[key])
+            elif key.startswith('problemDistance_'):
+                diagnostic_problem_distances.append(request.form[key])
+
+        # Преобразование списков в строки для хранения в БД
+        diagnostic_wells = ','.join(diagnostic_wells)
+        diagnostic_spans = ','.join(diagnostic_spans)
+        diagnostic_slopes = ','.join(diagnostic_slopes)
+        diagnostic_flows = ','.join(diagnostic_flows)
+        diagnostic_problems = ','.join(diagnostic_problems)
+        diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
+
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+
+        # Запрос на вставку данных
+        insert_query = """
+        INSERT INTO diagnostics (
+            address, short_title, date, type, diameter, material, distance, 
+            count_of_well, distance_between_wells, slope_between_wells, flow, 
+            author, problems, problems_distances, timestampdata
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        # Выполнение запроса
+        cursor.execute(insert_query, (
+            diagnostic_name, diagnostic_name, diagnostic_date, 
+            diagnostic_type, diagnostic_diameter, diagnostic_material, 
+            diagnostic_distance, diagnostic_wells, diagnostic_spans,
+            diagnostic_slopes, diagnostic_flows, diagnostic_author,
+            diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+        ))
+
+        # Фиксация изменений и закрытие соединения
+        conn.commit()
+        conn.close()
+
+        
+
+    return render_template('submit_form.html', error=error)
+
+@app.route('/veiw_diagnostics')
+def view_diagnostics():
+    diagnostics = get_diagnostics()
+
+    return render_template('view_page.html', diagnostics=diagnostics)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавление диагностики</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	 <style>
+        /* Стили для бокового меню */
+        #sidebarMenu {
+            min-height: 100vh; /* Высота на всю высоту вьюпорта */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Тень для бокового меню */
+            z-index: 1000; /* Устанавливаем z-index, чтобы меню было поверх основного контента */
+        }
+
+        .sidebar .nav-link {
+            border-radius: 0; /* Убираем закругление углов */
+            color: #333; /* Цвет текста */
+        }
+
+        .sidebar .nav-link:hover {
+            background: #f8f9fa; /* Фон при наведении */
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #007bff; /* Фон для активной ссылки */
+            color: white; /* Цвет текста для активной ссылки */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">PLI Service</a>
+        <div class="d-flex align-items-center">
+            <span class="me-3">Привет, {{ user_name }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Выход</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Add Panel Layout -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Menu -->
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">
+                            <span data-feather="home"></span>
+                            Редактор
+                        </a>
+                    </li>
+                    <!-- More menu items -->
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Добавление новой диагностики</h1>
+            </div>
+
+            <!-- Content goes here -->
+            <div class="container mt-5">
+                <form id="diagnosticForm" action="/submit_form" method="post">
+                    <!-- Первый блок -->
+                    <div class="form-section">
+                        <h3>Общая информация</h3>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Название</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Тип</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="КК">КК</option>
+                                <option value="ВК">ВК</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="diameter" class="form-label">Диаметр</label>
+                            <input type="number" class="form-control" id="diameter" name="diameter" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="material" class="form-label">Материал</label>
+                            <select class="form-select" id="material" name="material" required>
+                                <option value="Корсис">Корсис</option>
+                                <option value="Бетон">Бетон</option>
+                                <option value="ПНД">ПНД</option>
+                                <option value="Керамика">Керамика</option>
+                                <option value="Сталь">Сталь</option>
+                                <option value="Чугун">Чугун</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="distance" class="form-label">Расстояние</label>
+                            <input type="number" class="form-control" id="distance" name="distance" step="0.01" required>
+                        </div>
+                    </div>
+            
+                    <!-- Второй блок -->
+                    <div class="form-section">
+                        <h3>Детали пролета</h3>
+                        <div id="spanSection">
+                            <div class="sub-section span-group">
+                                <div class="mb-3">
+                                    <label for="well1" class="form-label">Начальный колодец</label>
+                                    <input type="number" class="form-control" name="well_0" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="span" class="form-label">Пролет</label>
+                                    <input type="number" class="form-control" name="span_0" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="slope" class="form-label">Уклон</label>
+                                    <input type="number" class="form-control" name="slope_0">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="flow" class="form-label">Течение</label>
+                                    <select class="form-select" name="flow_0" required>
+                                        <option value="Против течения">⬆</option>
+                                        <option value="По течению">⬇</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="well2" class="form-label">Конечный колодец</label>
+                                    <input type="number" class="form-control" name="well2_0" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
+                    </div>
+            
+                    <!-- Третий блок -->
+                    <div class="form-section">
+                        <h3>Детали проблемы</h3>
+                        <div id="problemSection">
+                            <div class="sub-section problem-group">
+                                <div class="mb-3">
+                                    <label for="problem" class="form-label">Проблема</label>
+                                    <textarea class="form-control" name="problem_0" rows="2" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
+                                    <input type="number" class="form-control" name="problemDistance_0" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addProblemSection()">Добавить проблему</button>
+                    </div>
+            
+                    <!-- Автор -->
+                    <div class="form-section">
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Автор</label>
+                            <input type="text" class="form-control" id="author" name="author" required>
+                        </div>
+                    </div>
+            
+                    <!-- Кнопка отправки -->
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+            
+            <!-- Скрипт, добавляющий дополнительные поля для заполнения пролетов и проблем -->
+            <script>
+                let spanIndex = 1; // Для отслеживания уникальности индексов пролета
+                let problemIndex = 1; // Для отслеживания уникальности индексов проблем
+
+                function addSpanSection() {
+                    const spanSection = document.getElementById('spanSection');
+                    const newSpan = document.createElement('div');
+                    newSpan.classList.add('sub-section', 'span-group');
+                    newSpan.innerHTML = `
+                        <div class="mb-3">
+                            <label for="well1" class="form-label">Начальный колодец</label>
+                            <input type="number" class="form-control" name="well_${spanIndex}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="span" class="form-label">Пролет</label>
+                            <input type="number" class="form-control" name="span_${spanIndex}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="slope" class="form-label">Уклон</label>
+                            <input type="number" class="form-control" name="slope_${spanIndex}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="flow" class="form-label">Течение</label>
+                            <select class="form-select" name="flow_${spanIndex}" required>
+                                <option value="Против течения">⬆</option>
+                                <option value="По течению">⬇</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="well2" class="form-label">Конечный колодец</label>
+                            <input type="number" class="form-control" name="well2_${spanIndex}" required>
+                        </div>
+                    `;
+                    spanSection.appendChild(newSpan);
+                    spanIndex++;
+                }
+                 
+                function addProblemSection() {
+                    const problemSection = document.getElementById('problemSection');
+                    const newProblem = document.createElement('div');
+                    newProblem.classList.add('sub-section', 'problem-group');
+                    newProblem.innerHTML = `
+                        <div class="mb-3">
+                            <label for="problem" class="form-label">Проблема</label>
+                            <textarea class="form-control" name="problem_${problemIndex}" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
+                            <input type="number" class="form-control" name="problemDistance_${problemIndex}" required>
+                        </div>
+                    `;
+                    problemSection.appendChild(newProblem);
+                    problemIndex++;
+                }
+            </script>
+            
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
