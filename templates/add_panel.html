@@ -1,97 +1,168 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавление диагностики</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-	 <style>
-        /* Стили для бокового меню */
-        #sidebarMenu {
-            min-height: 100vh; /* Высота на всю высоту вьюпорта */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Тень для бокового меню */
-            z-index: 1000; /* Устанавливаем z-index, чтобы меню было поверх основного контента */
-        }
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+  <head><script src="../assets/js/color-modes.js"></script>
 
-        .sidebar .nav-link {
-            border-radius: 0; /* Убираем закругление углов */
-            color: #333; /* Цвет текста */
-        }
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.122.0">
+    <title>PLI Service</title>
 
-        .sidebar .nav-link:hover {
-            background: #f8f9fa; /* Фон при наведении */
-        }
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
 
-        .sidebar .nav-link.active {
-            background-color: #007bff; /* Фон для активной ссылки */
-            color: white; /* Цвет текста для активной ссылки */
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+
+<link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
         }
+      }
+
+      .b-example-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
+
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        margin-left: 5%;
+        margin-right: 5%;
+        margin-top: 10px;
+        margin-bottom: 30px;
+
+      }
     </style>
-</head>
-<body>
 
-<!-- Header -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">PLI Service</a>
-        <div class="d-flex align-items-center">
-            <span class="me-3">Привет, {{ user_name }}</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Выход</a>
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='headers.css') }}" rel="stylesheet">
+
+  </head>
+  <body>
+
+    <main>
+
+        <div class="container">
+            <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+                <span class="fs-4">PLI Service</span>
+            </a>    <ul class="nav nav-pills">
+                <li class="nav-item"><a href="{{ url_for('add_diagnostic') }}" class="nav-link active" aria-current="page">Добавить</a></li>
+                <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Карта</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
+                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
+            </ul>
+            </header>
         </div>
-    </div>
-</nav>
-
-<!-- Add Panel Layout -->
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar Menu -->
-        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">
-                            <span data-feather="home"></span>
-                            Редактор
-                        </a>
-                    </li>
-                    <!-- More menu items -->
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Добавление новой диагностики</h1>
-            </div>
+        
+        <div class="main-content">
+                <h2>Добавление новой диагностики</h2>
+            
 
             <!-- Content goes here -->
             <div class="container mt-5">
                 <form id="diagnosticForm" action="/submit_form" method="post">
                     <!-- Первый блок -->
-                    <div class="form-section">
+                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Общая информация</h3>
-                        <div class="mb-3">
+                        <div>
                             <label for="name" class="form-label">Название</label>
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="type" class="form-label">Тип</label>
                             <select class="form-select" id="type" name="type" required>
                                 <option value="КК">КК</option>
                                 <option value="ВК">ВК</option>
                             </select>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="date" class="form-label">Дата</label>
                             <input type="date" class="form-control" id="date" name="date" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="diameter" class="form-label">Диаметр</label>
-                            <input type="number" class="form-control" id="diameter" name="diameter" step="0.01" required>
+                            <input type="number" class="form-control" id="diameter" name="diameter" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="material" class="form-label">Материал</label>
                             <select class="form-select" id="material" name="material" required>
                                 <option value="Корсис">Корсис</option>
@@ -104,49 +175,47 @@
                         </div>
                         <div class="mb-3">
                             <label for="distance" class="form-label">Расстояние</label>
-                            <input type="number" class="form-control" id="distance" name="distance" step="0.01" required>
+                            <input type="number" class="form-control" id="distance" name="distance" required>
                         </div>
                     </div>
-            
                     <!-- Второй блок -->
-                    <div class="form-section">
-                        <h3>Детали пролета</h3>
-                        <div id="spanSection">
-                            <div class="sub-section span-group">
-                                <div class="mb-3">
-                                    <label for="well1" class="form-label">Начальный колодец</label>
-                                    <input type="number" class="form-control" name="well_0" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="span" class="form-label">Пролет</label>
-                                    <input type="number" class="form-control" name="span_0" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="slope" class="form-label">Уклон</label>
-                                    <input type="number" class="form-control" name="slope_0">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="flow" class="form-label">Течение</label>
-                                    <select class="form-select" name="flow_0" required>
-                                        <option value="Против течения">⬆</option>
-                                        <option value="По течению">⬇</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="well2" class="form-label">Конечный колодец</label>
-                                    <input type="number" class="form-control" name="well2_0" required>
+                        <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <h3>Детали пролета</h3>
+                            <div id="spanSection">
+                                <div class="sub-section span-group">
+                                    <div>
+                                        <label for="well1" class="form-label">Начальный колодец</label>
+                                        <input type="number" class="form-control" name="well_0" required>
+                                    </div>
+                                    <div>
+                                        <label for="span" class="form-label">Пролет</label>
+                                        <input type="number" class="form-control" name="span_0" required>
+                                    </div>
+                                    <div>
+                                        <label for="slope" class="form-label">Уклон</label>
+                                        <input type="number" class="form-control" name="slope_0">
+                                    </div>
+                                    <div>
+                                        <label for="flow" class="form-label">Течение</label>
+                                        <select class="form-select" name="flow_0" required>
+                                            <option value="против течения">⬆</option>
+                                            <option value="по течению">⬇</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="well2" class="form-label">Конечный колодец</label>
+                                        <input type="number" class="form-control" name="well2_0" required>
+                                    </div>
                                 </div>
                             </div>
+                            <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
                         </div>
-                        <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
-                    </div>
-            
                     <!-- Третий блок -->
-                    <div class="form-section">
+                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Детали проблемы</h3>
                         <div id="problemSection">
                             <div class="sub-section problem-group">
-                                <div class="mb-3">
+                                <div>
                                     <label for="problem" class="form-label">Проблема</label>
                                     <textarea class="form-control" name="problem_0" rows="2" required></textarea>
                                 </div>
@@ -182,19 +251,19 @@
                     const newSpan = document.createElement('div');
                     newSpan.classList.add('sub-section', 'span-group');
                     newSpan.innerHTML = `
-                        <div class="mb-3">
+                        <div>
                             <label for="well1" class="form-label">Начальный колодец</label>
                             <input type="number" class="form-control" name="well_${spanIndex}" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="span" class="form-label">Пролет</label>
                             <input type="number" class="form-control" name="span_${spanIndex}" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="slope" class="form-label">Уклон</label>
                             <input type="number" class="form-control" name="slope_${spanIndex}" required>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="flow" class="form-label">Течение</label>
                             <select class="form-select" name="flow_${spanIndex}" required>
                                 <option value="Против течения">⬆</option>
@@ -215,25 +284,26 @@
                     const newProblem = document.createElement('div');
                     newProblem.classList.add('sub-section', 'problem-group');
                     newProblem.innerHTML = `
-                        <div class="mb-3">
+                        <div>
                             <label for="problem" class="form-label">Проблема</label>
                             <textarea class="form-control" name="problem_${problemIndex}" rows="2" required></textarea>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
                             <input type="number" class="form-control" name="problemDistance_${problemIndex}" required>
-                        </div>
+                        </div class="mb-3">
                     `;
                     problemSection.appendChild(newProblem);
                     problemIndex++;
                 }
             </script>
-            
-        </main>
+         </div>   
+        
     </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
+      </main>
+      <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+    </body>
 </html>

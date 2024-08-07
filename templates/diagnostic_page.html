@@ -141,39 +141,30 @@
         </div>
 
         <div class="main-content">
-            <h2>Список всех диагностик</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Название</th>
-                        <th>Дата</th>
-                        <th>Тип</th>
-                        <th>Диаметр</th>
-                        <th>Материал</th>
-                        <th>Расстояние</th>
-                        <th>Проблемы</th>
-                        <th>Автор</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for diagnostic in diagnostics %}
-                    <tr>
-                        <td><a href="{{ url_for('diagnostic_page', diagnostic_id=diagnostic['id']) }}">
-                            <button class="btn btn-primary">Просмотр</button>
-                          </a></td>
-                        <td>{{ diagnostic['short_title'] }}</td>
-                        <td>{{ diagnostic['date'] }}</td>
-                        <td>{{ diagnostic['type'] }}</td>
-                        <td>{{ diagnostic['diameter'] }}</td>
-                        <td>{{ diagnostic['material'] }}</td>
-                        <td>{{ diagnostic['distance'] }}</td>
-                        <td>{{ diagnostic['problems'] }}</td>
-                        <td>{{ diagnostic['author'] }}</td>
-                    </tr>
+            <h2>Детали диагностики</h2>
+            <ul>
+                <li><strong>Номер:</strong> {{ diagnostic['id'] }}</li>
+                <li><strong>Название:</strong> {{ diagnostic['short_title'] }}</li>
+                <li><strong>Адрес:</strong> {{ diagnostic['address'] }}</li>
+                <li><strong>Дата:</strong> {{ format_date }}</li>
+                <li><strong>Тип:</strong> {{ diagnostic['type'] }}</li>
+                <li><strong>Диаметр:</strong> {{ diagnostic['diameter'] }} мм</li>
+                <li><strong>Материал:</strong> {{ diagnostic['material'] }}</li>
+                <li><strong>Диагностика проведена:</strong>
+                    {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
+                        {% if not loop.first %}, {% endif %}
+                         из колодца {{ wells_firsts }} {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до колодца {{ wells_seconds }}
                     {% endfor %}
-                </tbody>
-            </table>
+                </li>
+                <li><strong>Обнаружено:</strong>
+                    {% for problem, distance in problem_details %}
+                        {% if not loop.first %}, {% endif %}
+                        {{ problem }} на расстоянии {{ distance }} м
+                    {% endfor %}
+                </li>
+                <li><strong>Автор:</strong> {{ diagnostic['author'] }}</li>
+            </ul>
+            <a href="{{ url_for('view_diagnostics') }}"><button class="btn btn-primary">Назад к списку</button></a>
         </div>
 
 

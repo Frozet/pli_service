@@ -1,5 +1,7 @@
 static/yandex_api_key.txt
+static/secret_key.txt
 *.db
+*.pyc
 .vscode/
 .idea/
 __pycache__/

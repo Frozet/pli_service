@@ -1,24 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, request, session
 import sqlite3
 import hashlib
-from datetime import datetime, date
+from datetime import datetime
+from db_requests import get_db_connection, get_diagnostic_detail, get_diagnostics, format_diagnostic_data
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'  # тут секретный ключ
+with open('static/secret_key.txt', 'r') as f:
+        key = f.readline()
+app.secret_key = key  # тут секретный ключ
 # секретный ключ для хеширования данных сессии при авторизации
-
-def get_db_connection():
-    conn = sqlite3.connect('database.db') # Позволяет извлекать данные как словари
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def get_diagnostics():
-    conn = get_db_connection() 
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM diagnostics")
-    diagnostics = cursor.fetchall()
-    conn.close()
-    return diagnostics
 
 def get_yandex_api_key():
     with open('static/yandex_api_key.txt', 'r') as f:
@@ -33,7 +23,7 @@ def index():
 
 # Страница формы логина в админ панель
 @app.route('/adm_login', methods=['GET', 'POST'])
-def admin_login():
+def user_login():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
         username = request.form['username']  # обрабатываем запрос с нашей формы который имеет атрибут name="username"
@@ -54,7 +44,7 @@ def admin_login():
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
-            # и делаем переадресацию пользователя на новую страницу -> в нашу адимнку
+            # и делаем переадресацию пользователя на главную страницу
             return redirect(url_for('index'))
 
         else:
@@ -74,7 +64,7 @@ def logout():
 def admin_panel():
     # делаем доп проверку если сессия авторизации была создана
     if 'user_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('user_login'))
     
     user_name = session['username']
     role = session['role']
@@ -87,7 +77,7 @@ def admin_panel():
 @app.route('/user_panel.html')
 def user_panel():
     if 'user_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('user_login'))
 
     user_name = session['username'] 
     role = session['role']
@@ -97,7 +87,7 @@ def user_panel():
 @app.route('/add_diagnostic')
 def add_diagnostic():
     if 'user_id' not in session:
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('user_login'))
 
     user_name = session['username']
     return render_template('add_panel.html', user_name=user_name)
@@ -107,10 +97,6 @@ def add_diagnostic():
 def submit_diagnostic():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
-
-        line = ''
-        for i, j in request.form.items():
-            line = line + i + ': ' + j + ', '
         
         diagnostic_name = request.form['name']
         diagnostic_type = request.form['type']
@@ -180,11 +166,24 @@ def submit_diagnostic():
 
     return render_template('submit_form.html', error=error)
 
-@app.route('/veiw_diagnostics')
+@app.route('/view_diagnostics')
 def view_diagnostics():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
     diagnostics = get_diagnostics()
 
     return render_template('view_page.html', diagnostics=diagnostics)
+
+@app.route('/diagnostic_page/<int:diagnostic_id>')
+def diagnostic_page(diagnostic_id):
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    diagnostic = get_diagnostic_detail(diagnostic_id)
+    problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
+    
+    return render_template('diagnostic_page.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details)
 
 
 if __name__ == '__main__':
