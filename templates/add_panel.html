@@ -125,7 +125,7 @@
             </a>    <ul class="nav nav-pills">
                 <li class="nav-item"><a href="{{ url_for('add_diagnostic') }}" class="nav-link active" aria-current="page">Добавить</a></li>
                 <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Карта</a></li>
+                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
                 <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
@@ -148,10 +148,19 @@
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
                         <div>
-                            <label for="type" class="form-label">Тип</label>
+                            <label for="type" class="form-label">Тип трубопровода</label>
                             <select class="form-select" id="type" name="type" required>
                                 <option value="КК">КК</option>
                                 <option value="ВК">ВК</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="type" class="form-label">Тип диагностики</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="Приемка">Приемка</option>
+                                <option value="Повреждение">Повреждение трубы</option>
+                                <option value="Без повреждений">Без повреждений</option>
+                                <option value="Найден колодец">Найден колодец</option>
                             </select>
                         </div>
                         <div>
@@ -159,7 +168,7 @@
                             <input type="date" class="form-control" id="date" name="date" required>
                         </div>
                         <div>
-                            <label for="diameter" class="form-label">Диаметр</label>
+                            <label for="diameter" class="form-label">Диаметр, мм</label>
                             <input type="number" class="form-control" id="diameter" name="diameter" required>
                         </div>
                         <div>
@@ -174,7 +183,7 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="distance" class="form-label">Расстояние</label>
+                            <label for="distance" class="form-label">Расстояние, м</label>
                             <input type="number" class="form-control" id="distance" name="distance" required>
                         </div>
                     </div>
@@ -188,11 +197,11 @@
                                         <input type="number" class="form-control" name="well_0" required>
                                     </div>
                                     <div>
-                                        <label for="span" class="form-label">Пролет</label>
+                                        <label for="span" class="form-label">Пролет, м</label>
                                         <input type="number" class="form-control" name="span_0" required>
                                     </div>
                                     <div>
-                                        <label for="slope" class="form-label">Уклон</label>
+                                        <label for="slope" class="form-label">Уклон, °</label>
                                         <input type="number" class="form-control" name="slope_0">
                                     </div>
                                     <div>
@@ -220,7 +229,7 @@
                                     <textarea class="form-control" name="problem_0" rows="2" required></textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
+                                    <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
                                     <input type="number" class="form-control" name="problemDistance_0" required>
                                 </div>
                             </div>

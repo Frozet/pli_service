@@ -132,7 +132,7 @@
             </a>    <ul class="nav nav-pills">
                 <li class="nav-item"><a href="{{ url_for('add_diagnostic') }}" class="nav-link active" aria-current="page">Добавить</a></li>
                 <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Карта</a></li>
+                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
                 <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
@@ -148,10 +148,11 @@
                         <th></th>
                         <th>Название</th>
                         <th>Дата</th>
+                        <th>Тип диагностики</th>
                         <th>Тип</th>
-                        <th>Диаметр</th>
+                        <th>Диаметр, мм</th>
                         <th>Материал</th>
-                        <th>Расстояние</th>
+                        <th>Расстояние, м</th>
                         <th>Проблемы</th>
                         <th>Автор</th>
                     </tr>
@@ -164,6 +165,7 @@
                           </a></td>
                         <td>{{ diagnostic['short_title'] }}</td>
                         <td>{{ diagnostic['date'] }}</td>
+                        <td>{{ diagnostic['diagnostic_type'] }}</td>
                         <td>{{ diagnostic['type'] }}</td>
                         <td>{{ diagnostic['diameter'] }}</td>
                         <td>{{ diagnostic['material'] }}</td>

@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, session
 import sqlite3
 import hashlib
 from datetime import datetime
-from db_requests import get_db_connection, get_diagnostic_detail, get_diagnostics, format_diagnostic_data
+from db_requests import get_db_connection, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates
 
 app = Flask(__name__)
 with open('static/secret_key.txt', 'r') as f:
@@ -100,6 +100,7 @@ def submit_diagnostic():
         
         diagnostic_name = request.form['name']
         diagnostic_type = request.form['type']
+        diagnostic_kind = request.form['diagnostic_type']
         diagnostic_date = request.form['date']
         diagnostic_diameter = request.form['diameter']
         diagnostic_material = request.form['material']
@@ -143,15 +144,15 @@ def submit_diagnostic():
         # Запрос на вставку данных
         insert_query = """
         INSERT INTO diagnostics (
-            address, short_title, date, type, diameter, material, distance, 
+            address, short_title, diagnostic_type, date, type, diameter, material, distance, 
             count_of_well, distance_between_wells, slope_between_wells, flow, 
             author, problems, problems_distances, timestampdata
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # Выполнение запроса
         cursor.execute(insert_query, (
-            diagnostic_name, diagnostic_name, diagnostic_date, 
+            diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
             diagnostic_type, diagnostic_diameter, diagnostic_material, 
             diagnostic_distance, diagnostic_wells, diagnostic_spans,
             diagnostic_slopes, diagnostic_flows, diagnostic_author,
@@ -184,6 +185,15 @@ def diagnostic_page(diagnostic_id):
     problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
     
     return render_template('diagnostic_page.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details)
+
+@app.route('/map')
+def map_page():
+     if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+     diagnostics = get_diagnostics_coordinates()
+     diagnostics_list = [dict(row) for row in diagnostics]
+     yandex_api_key = get_yandex_api_key()
+     return render_template('map_page.html', diagnostics=diagnostics_list, yandex_api_key=yandex_api_key)
 
 
 if __name__ == '__main__':
