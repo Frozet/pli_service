@@ -90,7 +90,8 @@ def add_diagnostic():
         return redirect(url_for('user_login'))
 
     user_name = session['username']
-    return render_template('add_panel.html', user_name=user_name)
+    yandex_api_key = get_yandex_api_key()
+    return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key)
 
 # Страница успешного добавления диагностики
 @app.route('/submit_form', methods=['GET', 'POST'])
@@ -100,6 +101,7 @@ def submit_diagnostic():
         
         diagnostic_name = request.form['name']
         diagnostic_type = request.form['type']
+        diagnostic_coordinates = request.form['coordinates']
         diagnostic_kind = request.form['diagnostic_type']
         diagnostic_date = request.form['date']
         diagnostic_diameter = request.form['diameter']
@@ -144,17 +146,17 @@ def submit_diagnostic():
         # Запрос на вставку данных
         insert_query = """
         INSERT INTO diagnostics (
-            address, short_title, diagnostic_type, date, type, diameter, material, distance, 
+            address, short_title, diagnostic_type, date, coordinates, type, diameter, material, distance, 
             count_of_well, distance_between_wells, slope_between_wells, flow, 
             author, problems, problems_distances, timestampdata
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # Выполнение запроса
         cursor.execute(insert_query, (
             diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
-            diagnostic_type, diagnostic_diameter, diagnostic_material, 
-            diagnostic_distance, diagnostic_wells, diagnostic_spans,
+            diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
+            diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
             diagnostic_slopes, diagnostic_flows, diagnostic_author,
             diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
         ))

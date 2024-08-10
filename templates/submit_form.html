@@ -120,8 +120,8 @@
                 <span class="fs-4">PLI Service</span>
             </a>    <ul class="nav nav-pills">
                 <li class="nav-item"><a href="{{ url_for('add_diagnostic') }}" class="nav-link active" aria-current="page">Добавить</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Карта</a></li>
+                <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
+                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
                 <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>

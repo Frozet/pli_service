@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" data-bs-theme="auto">
   <head><script src="../assets/js/color-modes.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -156,7 +157,7 @@
                         </div>
                         <div>
                             <label for="type" class="form-label">Тип диагностики</label>
-                            <select class="form-select" id="type" name="type" required>
+                            <select class="form-select" id="diagnostic_type" name="diagnostic_type" required>
                                 <option value="Приемка">Приемка</option>
                                 <option value="Повреждение">Повреждение трубы</option>
                                 <option value="Без повреждений">Без повреждений</option>
@@ -187,6 +188,43 @@
                             <input type="number" class="form-control" id="distance" name="distance" required>
                         </div>
                     </div>
+
+                    <!-- Карта для выбора координат -->
+                    <div id="map" style="width: 60%; height: 400px"></div>
+                    <!-- Скрытое поле для координат -->
+                    <input type="hidden" name="coordinates" id="coordinates" required>
+                    <script type="text/javascript">
+                        ymaps.ready(init);
+                        function init(){
+                            var myMap = new ymaps.Map("map", {
+                                center: [52.27,104.31],
+                                zoom: 13
+                            });
+
+                            var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
+                                iconLayout: 'default#image',
+                                // Своё изображение иконки метки.
+                                iconImageHref: '/static/assets/mark1.png',
+                                // Размеры метки.
+                                iconImageSize: [25, 25],
+                                iconImageOffset: [-10, -10],
+                                draggable: true // Позволяет перетаскивать маркер
+                            });
+                            myMap.geoObjects.add(placemark);
+
+                            // Обработчик события щелчка по карте
+                            myMap.events.add('click', function (e) {
+                                var coords = e.get('coords');
+                                // Перемещаем маркеры по щелчку в указанные координаты
+                                placemark.geometry.setCoordinates(coords);
+                                // Запись координат в скрытое поле
+                                document.getElementById('coordinates').value = coords.join(',');
+                            });
+                        }
+                      </script>
+                    
+
+
                     <!-- Второй блок -->
                         <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                             <h3>Детали пролета</h3>
@@ -305,6 +343,8 @@
                     problemSection.appendChild(newProblem);
                     problemIndex++;
                 }
+
+                
             </script>
          </div>   
         
