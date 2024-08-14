@@ -10,7 +10,7 @@ def get_db_connection():
 def get_diagnostics():
     conn = get_db_connection() 
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM diagnostics")
+    cursor.execute("SELECT * FROM diagnostics ORDER BY timestampdata DESC")
     diagnostics = cursor.fetchall()
     conn.close()
     return diagnostics

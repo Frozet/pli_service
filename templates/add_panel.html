@@ -8,73 +8,18 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.122.0">
-    <title>PLI Service</title>
+    <title>Добавление диагностики</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
 
-
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
 
-<link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-
-      .b-example-divider {
-        width: 100%;
-        height: 3rem;
-        background-color: rgba(0, 0, 0, .1);
-        border: solid rgba(0, 0, 0, .15);
-        border-width: 1px 0;
-        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
-      }
-
-      .b-example-vr {
-        flex-shrink: 0;
-        width: 1.5rem;
-        height: 100vh;
-      }
-
-      .bi {
-        vertical-align: -.125em;
-        fill: currentColor;
-      }
-
-      .nav-scroller {
-        position: relative;
-        z-index: 2;
-        height: 2.75rem;
-        overflow-y: hidden;
-      }
-
-      .nav-scroller .nav {
-        display: flex;
-        flex-wrap: nowrap;
-        padding-bottom: 1rem;
-        margin-top: -1px;
-        overflow-x: auto;
-        text-align: center;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-      }
-
       .btn-bd-primary {
         --bd-violet-bg: #712cf9;
         --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
-
         --bs-btn-font-weight: 600;
         --bs-btn-color: var(--bs-white);
         --bs-btn-bg: var(--bd-violet-bg);
@@ -88,25 +33,31 @@
         --bs-btn-active-border-color: #5a23c8;
       }
 
-      .bd-mode-toggle {
-        z-index: 1500;
-      }
-
-      .bd-mode-toggle .dropdown-menu .active .bi {
-        display: block !important;
-      }
-
       .main-content {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
         margin: 0;
         margin-left: 5%;
         margin-right: 5%;
         margin-top: 10px;
         margin-bottom: 30px;
+      }
 
+      .form-content {
+        width: 50%;
+        padding-right: 20px;
+      }
+
+      .map-content {
+        width: 50%;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #map {
+        width: 100%;
+        height: 600px;
       }
     </style>
 
@@ -120,143 +71,113 @@
     <main>
 
         <div class="container">
-            <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-                <span class="fs-4">PLI Service</span>
-            </a>    <ul class="nav nav-pills">
-                <li class="nav-item"><a href="{{ url_for('add_diagnostic') }}" class="nav-link active" aria-current="page">Добавить</a></li>
-                <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
-                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
-            </ul>
+            <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    
+                <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                    <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+                    <span class="fs-4">PLI Service</span>
+                </a>    
+                <ul class="nav nav-pills">
+                    <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+                    <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
+                    <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
+                    <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
+                </ul>
             </header>
         </div>
         
         <div class="main-content">
-                <h2>Добавление новой диагностики</h2>
-            
+            <!-- Левая половина - блоки формы -->
+            <div class="form-content">
+                {% if edit_mode %}
+                    <h2>Изменение диагностики {{ diagnostic['short_title'] }}</h2>
+                {% else %}
+                    <h2>Добавление новой диагностики</h2>
+                {% endif %}
 
-            <!-- Content goes here -->
-            <div class="container mt-5">
-                <form id="diagnosticForm" action="/submit_form" method="post">
+                <form id="diagnosticForm" action="{{ url_for('edit_diagnostic', diagnostic_id=diagnostic['id']) if edit_mode else '/submit_form' }}" method="post">
                     <!-- Первый блок -->
                     <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Общая информация</h3>
                         <div>
                             <label for="name" class="form-label">Название</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ diagnostic['short_title'] if edit_mode else '' }}" required>
                         </div>
                         <div>
                             <label for="type" class="form-label">Тип трубопровода</label>
                             <select class="form-select" id="type" name="type" required>
-                                <option value="КК">КК</option>
-                                <option value="ВК">ВК</option>
+                                <option value="КК" {% if edit_mode and diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>
+                                <option value="ВК" {% if edit_mode and diagnostic['type'] == 'ВК' %} selected {% endif %}>ВК</option>
                             </select>
                         </div>
                         <div>
                             <label for="type" class="form-label">Тип диагностики</label>
                             <select class="form-select" id="diagnostic_type" name="diagnostic_type" required>
-                                <option value="Приемка">Приемка</option>
-                                <option value="Повреждение">Повреждение трубы</option>
-                                <option value="Без повреждений">Без повреждений</option>
-                                <option value="Найден колодец">Найден колодец</option>
+                                <option value="Приемка" {% if edit_mode and diagnostic['diagnostic_type'] == 'Приемка' %} selected {% endif %}>Приемка</option>
+                                <option value="Повреждение" {% if edit_mode and diagnostic['diagnostic_type'] == 'Повреждение' %} selected {% endif %}>Повреждение трубы</option>
+                                <option value="Без повреждений" {% if edit_mode and diagnostic['diagnostic_type'] == 'Без повреждений' %} selected {% endif %}>Без повреждений</option>
+                                <option value="Найден колодец" {% if edit_mode and diagnostic['diagnostic_type'] == 'Найден колодец' %} selected {% endif %}>Найден колодец</option>
                             </select>
                         </div>
                         <div>
                             <label for="date" class="form-label">Дата</label>
-                            <input type="date" class="form-control" id="date" name="date" required>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ diagnostic['date'] if edit_mode else '' }}" required>
                         </div>
                         <div>
                             <label for="diameter" class="form-label">Диаметр, мм</label>
-                            <input type="number" class="form-control" id="diameter" name="diameter" required>
+                            <input type="number" class="form-control" id="diameter" name="diameter" value="{{ diagnostic['diameter'] if edit_mode else '' }}" required>
                         </div>
                         <div>
                             <label for="material" class="form-label">Материал</label>
                             <select class="form-select" id="material" name="material" required>
-                                <option value="Корсис">Корсис</option>
-                                <option value="Бетон">Бетон</option>
-                                <option value="ПНД">ПНД</option>
-                                <option value="Керамика">Керамика</option>
-                                <option value="Сталь">Сталь</option>
-                                <option value="Чугун">Чугун</option>
+                                <option value="Корсис" {% if edit_mode and diagnostic['material'] == 'Корсис' %} selected {% endif %}>Корсис</option>
+                                <option value="Бетон" {% if edit_mode and diagnostic['material'] == 'Бетон' %} selected {% endif %}>Бетон</option>
+                                <option value="ПНД" {% if edit_mode and diagnostic['material'] == 'ПНД' %} selected {% endif %}>ПНД</option>
+                                <option value="Керамика" {% if edit_mode and diagnostic['material'] == 'Керамика' %} selected {% endif %}>Керамика</option>
+                                <option value="Сталь" {% if edit_mode and diagnostic['material'] == 'Сталь' %} selected {% endif %}>Сталь</option>
+                                <option value="Чугун" {% if edit_mode and diagnostic['material'] == 'Чугун' %} selected {% endif %}>Чугун</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="distance" class="form-label">Расстояние, м</label>
-                            <input type="number" class="form-control" id="distance" name="distance" required>
+                            <input type="number" class="form-control" id="distance" name="distance" value="{{ diagnostic['distance'] if edit_mode else '' }}" required>
                         </div>
                     </div>
 
-                    <!-- Карта для выбора координат -->
-                    <div id="map" style="width: 60%; height: 400px"></div>
-                    <!-- Скрытое поле для координат -->
-                    <input type="hidden" name="coordinates" id="coordinates" required>
-                    <script type="text/javascript">
-                        ymaps.ready(init);
-                        function init(){
-                            var myMap = new ymaps.Map("map", {
-                                center: [52.27,104.31],
-                                zoom: 13
-                            });
-
-                            var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
-                                iconLayout: 'default#image',
-                                // Своё изображение иконки метки.
-                                iconImageHref: '/static/assets/mark1.png',
-                                // Размеры метки.
-                                iconImageSize: [25, 25],
-                                iconImageOffset: [-10, -10],
-                                draggable: true // Позволяет перетаскивать маркер
-                            });
-                            myMap.geoObjects.add(placemark);
-
-                            // Обработчик события щелчка по карте
-                            myMap.events.add('click', function (e) {
-                                var coords = e.get('coords');
-                                // Перемещаем маркеры по щелчку в указанные координаты
-                                placemark.geometry.setCoordinates(coords);
-                                // Запись координат в скрытое поле
-                                document.getElementById('coordinates').value = coords.join(',');
-                            });
-                        }
-                      </script>
-                    
-
-
                     <!-- Второй блок -->
-                        <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                            <h3>Детали пролета</h3>
-                            <div id="spanSection">
-                                <div class="sub-section span-group">
-                                    <div>
-                                        <label for="well1" class="form-label">Начальный колодец</label>
-                                        <input type="number" class="form-control" name="well_0" required>
-                                    </div>
-                                    <div>
-                                        <label for="span" class="form-label">Пролет, м</label>
-                                        <input type="number" class="form-control" name="span_0" required>
-                                    </div>
-                                    <div>
-                                        <label for="slope" class="form-label">Уклон, °</label>
-                                        <input type="number" class="form-control" name="slope_0">
-                                    </div>
-                                    <div>
-                                        <label for="flow" class="form-label">Течение</label>
-                                        <select class="form-select" name="flow_0" required>
-                                            <option value="против течения">⬆</option>
-                                            <option value="по течению">⬇</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="well2" class="form-label">Конечный колодец</label>
-                                        <input type="number" class="form-control" name="well2_0" required>
-                                    </div>
+                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h3>Детали пролета</h3>
+                        <div id="spanSection">
+                            <div class="sub-section span-group">
+                                <div>
+                                    <label for="well1" class="form-label">Из колодца</label>
+                                    <input type="number" class="form-control" name="well_0" value="{{ diagnostic['count_of_well'] if edit_mode else '' }}" required>
+                                </div>
+                                <div>
+                                    <label for="span" class="form-label">Пролет, м</label>
+                                    <input type="number" class="form-control" name="span_0" value="{{ diagnostic['distance_between_wells'] if edit_mode else '' }}" required>
+                                </div>
+                                <div>
+                                    <label for="slope" class="form-label">Уклон, °</label>
+                                    <input type="number" class="form-control" name="slope_0" value="{{ diagnostic['slope_between_wells'] if edit_mode else '' }}" required>
+                                </div>
+                                <div>
+                                    <label for="flow" class="form-label">Течение</label>
+                                    <select class="form-select" name="flow_0" required>
+                                        <option value="против течения">⬆</option>
+                                        <option value="по течению">⬇</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="well2" class="form-label">В колодец</label>
+                                    <input type="number" class="form-control" name="well2_0" required>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
                         </div>
+                        <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
+                    </div>
+
                     <!-- Третий блок -->
                     <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Детали проблемы</h3>
@@ -264,36 +185,75 @@
                             <div class="sub-section problem-group">
                                 <div>
                                     <label for="problem" class="form-label">Проблема</label>
-                                    <textarea class="form-control" name="problem_0" rows="2" required></textarea>
+                                    <textarea class="form-control" name="problem_0" rows="2" value="{{ diagnostic['problems'] if edit_mode else '' }}" required></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
-                                    <input type="number" class="form-control" name="problemDistance_0" required>
+                                    <input type="number" class="form-control" name="problemDistance_0" value="{{ diagnostic['problems_distances'] if edit_mode else '' }}" required>
                                 </div>
                             </div>
                         </div>
                         <button type="button" class="btn btn-secondary" onclick="addProblemSection()">Добавить проблему</button>
                     </div>
-            
-                    <!-- Автор -->
-                    <div class="form-section">
+
+                    <div class="form-group mt-3">
+                        <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
+                    </div>
+                    <div class="form-section" style="align-content: start;">
                         <div class="mb-3">
                             <label for="author" class="form-label">Автор</label>
-                            <input type="text" class="form-control" id="author" name="author" required>
+                            <input type="text" class="form-control" id="author" name="author" value="{{ diagnostic['author'] if edit_mode else '' }}" required>
                         </div>
                     </div>
-            
-                    <!-- Кнопка отправки -->
+
+                    <!-- Отправка формы -->
                     <button type="submit" class="btn btn-primary">Отправить</button>
                 </form>
             </div>
-            
-            <!-- Скрипт, добавляющий дополнительные поля для заполнения пролетов и проблем -->
-            <script>
-                let spanIndex = 1; // Для отслеживания уникальности индексов пролета
-                let problemIndex = 1; // Для отслеживания уникальности индексов проблем
 
-                function addSpanSection() {
+            <!-- Правая половина - карта -->
+            <div class="map-content">
+                <h3>Карта</h3>
+                <div id="map"></div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+      ymaps.ready(init);
+        function init(){
+            var myMap = new ymaps.Map("map", {
+                center: [{{ diagnostic['coordinates'] if edit_mode else '52.27,104.31' }}],
+                zoom: 13
+            });
+
+            var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
+                iconLayout: 'default#image',
+                // Своё изображение иконки метки.
+                iconImageHref: '/static/assets/mark1.png',
+                // Размеры метки.
+                iconImageSize: [35, 35],
+                iconImageOffset: [-10, -10],
+                draggable: true // Позволяет перетаскивать маркер
+            });
+
+            myMap.geoObjects.add(placemark);
+            // Обработчик события щелчка по карте
+            myMap.events.add('click', function (e) {
+                var coords = e.get('coords');
+                // Перемещаем маркеры по щелчку в указанные координаты
+                placemark.geometry.setCoordinates(coords);
+                // Запись координат в скрытое поле
+                document.getElementById('coordinates').value = coords.join(',');
+            });
+        }
+
+      // JavaScript для добавления новых секций пролета
+      function addSpanSection() {
                     const spanSection = document.getElementById('spanSection');
                     const newSpan = document.createElement('div');
                     newSpan.classList.add('sub-section', 'span-group');
@@ -324,9 +284,10 @@
                     `;
                     spanSection.appendChild(newSpan);
                     spanIndex++;
-                }
-                 
-                function addProblemSection() {
+        }
+
+      // JavaScript для добавления новых секций проблемы
+      function addProblemSection() {
                     const problemSection = document.getElementById('problemSection');
                     const newProblem = document.createElement('div');
                     newProblem.classList.add('sub-section', 'problem-group');
@@ -342,17 +303,7 @@
                     `;
                     problemSection.appendChild(newProblem);
                     problemIndex++;
-                }
-
-                
-            </script>
-         </div>   
-        
-    </div>
-</div>
-
-
-      </main>
-      <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
-    </body>
+        }
+    </script>
+  </body>
 </html>

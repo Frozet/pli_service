@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.122.0">
-    <title>Проведенные диагностики</title>
+    <title>PLI Service</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
 
@@ -104,17 +104,6 @@
         margin-top: 10px;
 
       }
-      table {
-            width: 90%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #ececec;
-        }
     </style>
 
 
@@ -141,41 +130,10 @@
         </div>
 
         <div class="main-content">
-            <h2>Список всех диагностик</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Название</th>
-                        <th>Дата</th>
-                        <th>Тип диагностики</th>
-                        <th>Тип</th>
-                        <th>Диаметр, мм</th>
-                        <th>Материал</th>
-                        <th>Расстояние, м</th>
-                        <th>Проблемы</th>
-                        <th>Автор</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for diagnostic in diagnostics %}
-                    <tr>
-                        <td><a href="{{ url_for('diagnostic_page', diagnostic_id=diagnostic['id']) }}">
-                            <button class="btn btn-primary">Просмотр</button>
-                          </a></td>
-                        <td>{{ diagnostic['short_title'] }}</td>
-                        <td>{{ diagnostic['date'] }}</td>
-                        <td>{{ diagnostic['diagnostic_type'] }}</td>
-                        <td>{{ diagnostic['type'] }}</td>
-                        <td>{{ diagnostic['diameter'] }}</td>
-                        <td>{{ diagnostic['material'] }}</td>
-                        <td>{{ diagnostic['distance'] }}</td>
-                        <td>{{ diagnostic['problems'] }}</td>
-                        <td>{{ diagnostic['author'] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <h3>Диагностика успешно изменена!</h3>
+            <form id="diagnosticForm" action="/index">
+                <button type="submit" class="btn btn-primary">На главную страницу</button>
+            </form>
         </div>
 
 
