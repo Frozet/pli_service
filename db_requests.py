@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 # Подключение к бд
 def get_db_connection():
@@ -52,3 +53,104 @@ def format_diagnostic_data(diagnostic):
     wells_details = list(zip(wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds)) # Создание списка кортежей
 
     return problem_details, format_date, wells_details
+
+def data_from_add_to_db(request):
+    diagnostic_name = request.form['name']
+    diagnostic_type = request.form['type']
+    diagnostic_coordinates = request.form['coordinates']
+    diagnostic_kind = request.form['diagnostic_type']
+    diagnostic_date = request.form['date']
+    diagnostic_diameter = request.form['diameter']
+    diagnostic_material = request.form['material']
+    diagnostic_distance = request.form['distance']
+    diagnostic_author = request.form['author']
+    diagnostic_timestampdata = datetime.now()
+    
+    # Обработка колодцев, пролета и других данных
+    diagnostic_wells = []
+    diagnostic_spans = []
+    diagnostic_slopes = []
+    diagnostic_flows = []
+    diagnostic_problems = []
+    diagnostic_problem_distances = []
+
+    for key in request.form.keys():
+        if key.startswith('well'):
+            diagnostic_wells.append(request.form[key])
+        elif key.startswith('span_'):
+            diagnostic_spans.append(request.form[key])
+        elif key.startswith('slope_'):
+            diagnostic_slopes.append(request.form[key])
+        elif key.startswith('flow_'):
+            diagnostic_flows.append(request.form[key])
+        elif key.startswith('problem_'):
+            diagnostic_problems.append(request.form[key])
+        elif key.startswith('problemDistance_'):
+            diagnostic_problem_distances.append(request.form[key])
+
+    # Преобразование списков в строки для хранения в БД
+    diagnostic_wells = ','.join(diagnostic_wells)
+    diagnostic_spans = ','.join(diagnostic_spans)
+    diagnostic_slopes = ','.join(diagnostic_slopes)
+    diagnostic_flows = ','.join(diagnostic_flows)
+    diagnostic_problems = ','.join(diagnostic_problems)
+    diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
+
+    return diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+
+def insert_to_db(diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Запрос на вставку данных
+    insert_query = """
+    INSERT INTO diagnostics (
+        address, short_title, diagnostic_type, date, coordinates, type, diameter, material, distance, 
+        count_of_well, distance_between_wells, slope_between_wells, flow, 
+        author, problems, problems_distances, timestampdata
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    # Выполнение запроса
+    cursor.execute(insert_query, (
+        diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
+        diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
+        diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
+        diagnostic_slopes, diagnostic_flows, diagnostic_author,
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+    ))
+
+    # Фиксация изменений и закрытие соединения
+    conn.commit()
+    conn.close()
+    
+    return None
+
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+    # Update the diagnostic in the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        UPDATE diagnostics SET address = ?, short_title = ?, diagnostic_type = ?, date = ?, coordinates = ?, type = ?, diameter = ?, material = ?, distance = ?, count_of_well = ?, distance_between_wells = ?, slope_between_wells = ?, flow = ?, author = ?, problems = ?, problems_distances = ?, timestampdata = ?
+        WHERE id = ?
+    """, (
+        diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
+        diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
+        diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
+        diagnostic_slopes, diagnostic_flows, diagnostic_author,
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_id
+        ))
+    
+    conn.commit()
+    conn.close()
+    
+    return None
+
+def delete_func(diagnostic_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM diagnostics WHERE id = ?", (diagnostic_id,))
+    conn.commit()
+    conn.close()
+    return None

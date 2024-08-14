@@ -22,6 +22,10 @@
         margin-top: 20px;
       }
 
+      .col-md-6 {
+          padding: 15px;
+      }
+
       .details, .graph {
         flex: 1;
         padding: 20px;
@@ -34,8 +38,9 @@
         align-items: center;
       }
 
-      .btn-back, .btn-edit {
+      .btn-back, .btn-secondary, .btn-danger {
         margin-bottom: 20px;
+        margin: 0 5px;
       }
       .button-container {
         display: flex;
@@ -67,19 +72,23 @@
       </div>
 
       <div class="container">
-        <!-- Контейнер для кнопок -->
-        <div class="button-container">
-          <!-- Кнопка "Назад к списку" -->
-          <a href="{{ url_for('view_diagnostics') }}">
-            <button class="btn btn-primary btn-back">Назад к списку</button>
-          </a>
-          <!-- Кнопка "Изменить" -->
-          <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
-            <button class="btn btn-secondary btn-edit">Изменить</button>
-          </a>
+        <div class="d-flex justify-content-between mb-3">
+            <!-- Left-aligned button -->
+            <a href="{{ url_for('view_diagnostics') }}">
+                <button class="btn btn-primary">Назад к списку</button>
+            </a>
+
+            <!-- Right-aligned buttons -->
+              <div>
+                <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
+                    <button class="btn btn-secondary">Изменить</button>
+                </a>
+                <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
+            </div>
         </div>
 
-        <div class="main-content">
+
+        <div class="main-content row">
           <!-- Левая часть: Детали диагностики -->
           <div class="details">
             <h2>Детали диагностики</h2>
@@ -115,6 +124,16 @@
           </div>
         </div>
       </div>
+
+      <script>
+        function confirmDeletion() {
+            if (confirm("Вы уверены, что хотите удалить эту диагностику?")) {
+                // Redirect to the delete route
+                window.location.href = "{{ url_for('delete_diagnostic', diagnostic_id=diagnostic['id']) }}";
+            }
+        }
+      </script>
+
     </main>
 
     <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>

@@ -146,23 +146,23 @@
                     </div>
 
                     <!-- Второй блок -->
-                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div class="form-section flex-wrap flex-md-nowrap align-items-center pb-2 border-bottom">
                         <h3>Детали пролета</h3>
                         <div id="spanSection">
                             <div class="sub-section span-group">
-                                <div>
+                                <div class="mb-3">
                                     <label for="well1" class="form-label">Из колодца</label>
                                     <input type="number" class="form-control" name="well_0" value="{{ diagnostic['count_of_well'] if edit_mode else '' }}" required>
                                 </div>
-                                <div>
+                                <div class="mb-3">
                                     <label for="span" class="form-label">Пролет, м</label>
                                     <input type="number" class="form-control" name="span_0" value="{{ diagnostic['distance_between_wells'] if edit_mode else '' }}" required>
                                 </div>
-                                <div>
+                                <div class="mb-3">
                                     <label for="slope" class="form-label">Уклон, °</label>
                                     <input type="number" class="form-control" name="slope_0" value="{{ diagnostic['slope_between_wells'] if edit_mode else '' }}" required>
                                 </div>
-                                <div>
+                                <div class="mb-3">
                                     <label for="flow" class="form-label">Течение</label>
                                     <select class="form-select" name="flow_0" required>
                                         <option value="против течения">⬆</option>
@@ -179,11 +179,11 @@
                     </div>
 
                     <!-- Третий блок -->
-                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div class="form-section flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Детали проблемы</h3>
                         <div id="problemSection">
                             <div class="sub-section problem-group">
-                                <div>
+                                <div class="mb-3">
                                     <label for="problem" class="form-label">Проблема</label>
                                     <textarea class="form-control" name="problem_0" rows="2" value="{{ diagnostic['problems'] if edit_mode else '' }}" required></textarea>
                                 </div>
@@ -218,6 +218,64 @@
             </div>
         </div>
 
+        <script>
+            let spanIndex = 1; // Для отслеживания уникальности индексов пролета
+            let problemIndex = 1; // Для отслеживания уникальности индексов проблем
+
+            // JavaScript для добавления новых секций пролета
+            function addSpanSection() {
+                          const spanSection = document.getElementById('spanSection');
+                          const newSpan = document.createElement('div');
+                          newSpan.classList.add('sub-section', 'span-group');
+                          newSpan.innerHTML = `
+                              <div class="mb-3">
+                                  <label for="well1" class="form-label">Начальный колодец</label>
+                                  <input type="number" class="form-control" name="well_${spanIndex}" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="span" class="form-label">Пролет</label>
+                                  <input type="number" class="form-control" name="span_${spanIndex}" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="slope" class="form-label">Уклон</label>
+                                  <input type="number" class="form-control" name="slope_${spanIndex}" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="flow" class="form-label">Течение</label>
+                                  <select class="form-select" name="flow_${spanIndex}" required>
+                                      <option value="Против течения">⬆</option>
+                                      <option value="По течению">⬇</option>
+                                  </select>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="well2" class="form-label">Конечный колодец</label>
+                                  <input type="number" class="form-control" name="well2_${spanIndex}" required>
+                              </div>
+                          `;
+                          spanSection.appendChild(newSpan);
+                          spanIndex++;
+              }
+      
+            // JavaScript для добавления новых секций проблемы
+            function addProblemSection() {
+                          const problemSection = document.getElementById('problemSection');
+                          const newProblem = document.createElement('div');
+                          newProblem.classList.add('sub-section', 'problem-group');
+                          newProblem.innerHTML = `
+                              <div class="mb-3">
+                                  <label for="problem" class="form-label">Проблема</label>
+                                  <textarea class="form-control" name="problem_${problemIndex}" rows="2" required></textarea>
+                              </div>
+                              <div class="mb-3"> 
+                                  <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
+                                  <input type="number" class="form-control" name="problemDistance_${problemIndex}" required>
+                              </div>
+                          `;
+                          problemSection.appendChild(newProblem);
+                          problemIndex++;
+              }
+          </script>
+
     </main>
 
 
@@ -251,59 +309,8 @@
                 document.getElementById('coordinates').value = coords.join(',');
             });
         }
-
-      // JavaScript для добавления новых секций пролета
-      function addSpanSection() {
-                    const spanSection = document.getElementById('spanSection');
-                    const newSpan = document.createElement('div');
-                    newSpan.classList.add('sub-section', 'span-group');
-                    newSpan.innerHTML = `
-                        <div>
-                            <label for="well1" class="form-label">Начальный колодец</label>
-                            <input type="number" class="form-control" name="well_${spanIndex}" required>
-                        </div>
-                        <div>
-                            <label for="span" class="form-label">Пролет</label>
-                            <input type="number" class="form-control" name="span_${spanIndex}" required>
-                        </div>
-                        <div>
-                            <label for="slope" class="form-label">Уклон</label>
-                            <input type="number" class="form-control" name="slope_${spanIndex}" required>
-                        </div>
-                        <div>
-                            <label for="flow" class="form-label">Течение</label>
-                            <select class="form-select" name="flow_${spanIndex}" required>
-                                <option value="Против течения">⬆</option>
-                                <option value="По течению">⬇</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="well2" class="form-label">Конечный колодец</label>
-                            <input type="number" class="form-control" name="well2_${spanIndex}" required>
-                        </div>
-                    `;
-                    spanSection.appendChild(newSpan);
-                    spanIndex++;
-        }
-
-      // JavaScript для добавления новых секций проблемы
-      function addProblemSection() {
-                    const problemSection = document.getElementById('problemSection');
-                    const newProblem = document.createElement('div');
-                    newProblem.classList.add('sub-section', 'problem-group');
-                    newProblem.innerHTML = `
-                        <div>
-                            <label for="problem" class="form-label">Проблема</label>
-                            <textarea class="form-control" name="problem_${problemIndex}" rows="2" required></textarea>
-                        </div>
-                        <div>
-                            <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
-                            <input type="number" class="form-control" name="problemDistance_${problemIndex}" required>
-                        </div class="mb-3">
-                    `;
-                    problemSection.appendChild(newProblem);
-                    problemIndex++;
-        }
     </script>
+
+    
   </body>
 </html>
