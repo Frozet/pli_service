@@ -1,16 +1,22 @@
-import sqlite3
+#import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 
 # Подключение к бд
 def get_db_connection():
-    conn = sqlite3.connect('database.db') # Позволяет извлекать данные как словари
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(
+    host="localhost",      # Например, "localhost"
+    database="pli_service", # Название вашей базы данных
+    user="postgres",  # Имя пользователя PostgreSQL
+    password="postgres"  # Пароль пользователя PostgreSQL
+    )
     return conn
 
 # Получение данных всех диагностик из бд
 def get_diagnostics():
-    conn = get_db_connection() 
-    cursor = conn.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM diagnostics ORDER BY timestampdata DESC")
     diagnostics = cursor.fetchall()
     conn.close()
@@ -19,8 +25,8 @@ def get_diagnostics():
 # Получение полных данных конкретной диагностики из бд
 def get_diagnostic_detail(diagnostic_id):
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM diagnostics WHERE id = ?", (diagnostic_id,))
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM diagnostics WHERE id = %s", (diagnostic_id,))
     diagnostic = cursor.fetchone()
     conn.close()
     return diagnostic
@@ -28,7 +34,7 @@ def get_diagnostic_detail(diagnostic_id):
 # Получение данных для расположения иконок на карте
 def get_diagnostics_coordinates():
     conn = get_db_connection()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
     cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics')
     diagnostics = cur.fetchall()
@@ -56,6 +62,7 @@ def format_diagnostic_data(diagnostic):
 
 def data_from_add_to_db(request):
     diagnostic_name = request.form['name']
+    diagnostic_address = request.form['address']
     diagnostic_type = request.form['type']
     diagnostic_coordinates = request.form['coordinates']
     diagnostic_kind = request.form['diagnostic_type']
@@ -96,24 +103,24 @@ def data_from_add_to_db(request):
     diagnostic_problems = ','.join(diagnostic_problems)
     diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
 
-    return diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+    return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
 
-def insert_to_db(diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
-    conn = sqlite3.connect('database.db')
+def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     # Запрос на вставку данных
     insert_query = """
     INSERT INTO diagnostics (
-        address, short_title, diagnostic_type, date, coordinates, type, diameter, material, distance, 
+        short_title, address, diagnostic_type, date, coordinates, type, diameter, material, distance, 
         count_of_well, distance_between_wells, slope_between_wells, flow, 
         author, problems, problems_distances, timestampdata
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
     # Выполнение запроса
     cursor.execute(insert_query, (
-        diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
+        diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
@@ -126,16 +133,16 @@ def insert_to_db(diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_c
     
     return None
 
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
     # Update the diagnostic in the database
     conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute("""
-        UPDATE diagnostics SET address = ?, short_title = ?, diagnostic_type = ?, date = ?, coordinates = ?, type = ?, diameter = ?, material = ?, distance = ?, count_of_well = ?, distance_between_wells = ?, slope_between_wells = ?, flow = ?, author = ?, problems = ?, problems_distances = ?, timestampdata = ?
-        WHERE id = ?
+        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s
+        WHERE id = %s
     """, (
-        diagnostic_name, diagnostic_name, diagnostic_kind, diagnostic_date, 
+        diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
@@ -150,7 +157,7 @@ def edit_row(diagnostic_id, diagnostic_name, diagnostic_kind, diagnostic_date, d
 def delete_func(diagnostic_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM diagnostics WHERE id = ?", (diagnostic_id,))
+    cursor.execute("DELETE FROM diagnostics WHERE id = %s", (diagnostic_id,))
     conn.commit()
     conn.close()
     return None

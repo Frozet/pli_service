@@ -1,8 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, session
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from datetime import datetime
 from db_requests import get_db_connection, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from graph_generate import generate_diagnostic_plot
 
@@ -34,18 +34,22 @@ def user_login():
 
         # устанавливаем соединение с БД
         conn = get_db_connection()
+        c = conn.cursor(cursor_factory=RealDictCursor)  # используем RealDictCursor
         # создаем запрос для поиска пользователя по username,
         # если такой пользователь существует, то получаем все данные id, password
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        c.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = c.fetchone()
         # закрываем подключение БД
         conn.close()
 
         # теперь проверяем если данные сходятся формы с данными БД
         if user and user['password'] == hashed_password:
-            # в случае успеха создаем сессию в которую записываем id пользователя
+            # в случае успеха создаем сессию в которую записываем все данные пользователя
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
+            session['full_name'] = user['full_name']
+            session['area'] = user['area']
             # и делаем переадресацию пользователя на главную страницу
             return redirect(url_for('index'))
 
@@ -106,8 +110,8 @@ def add_diagnostic(diagnostic_id):
 @app.route('/edit_form/<int:diagnostic_id>', methods=['GET', 'POST'])
 def edit_diagnostic(diagnostic_id):
     if request.method == 'POST':
-        diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata = data_from_add_to_db(request)
-        edit_row(diagnostic_id, diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata)
+        diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata = data_from_add_to_db(request)
+        edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata)
 
         # Redirect to the diagnostic details page
     return render_template('edit_form.html')
@@ -117,8 +121,8 @@ def edit_diagnostic(diagnostic_id):
 def submit_diagnostic():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
-        diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata = data_from_add_to_db(request)
-        insert_to_db(diagnostic_name, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata)
+        diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata = data_from_add_to_db(request)
+        insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata)
         
     return render_template('submit_form.html', error=error)
 

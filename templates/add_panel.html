@@ -105,6 +105,10 @@
                             <input type="text" class="form-control" id="name" name="name" value="{{ diagnostic['short_title'] if edit_mode else '' }}" required>
                         </div>
                         <div>
+                            <label for="name" class="form-label">Адрес</label>
+                            <input type="text" class="form-control" id="address" name="address" value="{{ diagnostic['address'] if edit_mode else '' }}" required>
+                        </div>
+                        <div>
                             <label for="type" class="form-label">Тип трубопровода</label>
                             <select class="form-select" id="type" name="type" required>
                                 <option value="КК" {% if edit_mode and diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>

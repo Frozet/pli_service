@@ -1,37 +1,55 @@
-import sqlite3
+import psycopg2
+from psycopg2 import sql
 
-# Создание или подключение к базе данных
-conn = sqlite3.connect('database.db')
+# Подключение к базе данных PostgreSQL
+conn = psycopg2.connect(
+    host="localhost",      # Например, "localhost"
+    database="pli_service", # Название вашей базы данных
+    user="postgres",  # Имя пользователя PostgreSQL
+    password="postgres"  # Пароль пользователя PostgreSQL
+)
 
 # Создание курсора
 c = conn.cursor()
 
 # Создание таблицы Diagnostics
-c.execute('''CREATE TABLE IF NOT EXISTS diagnostics (
-             id INTEGER PRIMARY KEY AUTOINCREMENT,
-             address TEXT,
-             short_title TEXT,
-             date DATE,
-             coordinates TEXT,
-             type TEXT,
-             diameter INTEGER,
-             material TEXT,
-             flow TEXT,
-             distance INTEGER,
-             count_of_well INTEGER,
-             distance_between_wells TEXT,
-             slope_between_wells TEXT,
-             author TEXT,
-             problems TEXT,
-             problems_distances TEXT,
-             timestampdata DATETIME)''')
+c.execute('''
+    CREATE TABLE IF NOT EXISTS diagnostics (
+        id SERIAL PRIMARY KEY,
+        address VARCHAR(255),
+        short_title VARCHAR(255),
+        diagnostic_type VARCHAR(255),
+        date DATE,
+        coordinates TEXT,
+        type VARCHAR(255),
+        diameter INTEGER,
+        material VARCHAR(255),
+        flow TEXT,
+        distance INTEGER,
+        count_of_well TEXT,
+        distance_between_wells TEXT,
+        slope_between_wells TEXT,
+        author VARCHAR(255),
+        problems TEXT,
+        problems_distances TEXT,
+        images BYTEA,
+        timestampdata TIMESTAMP
+    )
+''')
 
 # Создание таблицы Users
-c.execute('''CREATE TABLE IF NOT EXISTS users (
-             id INTEGER PRIMARY KEY AUTOINCREMENT,
-             username TEXT,
-             password TEXT,
-             role TEXT)''')
+c.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255),
+        password VARCHAR(255),
+        full_name VARCHAR(255),
+        role VARCHAR(255),
+        area VARCHAR(255)
+    )
+''')
 
-# Закрытие соединения с базой данных
+# Завершение работы с курсором и закрытие соединения с базой данных
+conn.commit()
+c.close()
 conn.close()
