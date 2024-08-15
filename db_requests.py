@@ -1,4 +1,3 @@
-#import sqlite3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
@@ -14,12 +13,32 @@ def get_db_connection():
     return conn
 
 # Получение данных всех диагностик из бд
-def get_diagnostics():
+def get_diagnostics(search_query):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute("SELECT * FROM diagnostics ORDER BY timestampdata DESC")
+    # Формируем SQL-запрос с использованием параметра search_query
+    if search_query:
+        query = """
+        SELECT * FROM diagnostics 
+        WHERE 
+            short_title ILIKE %s OR
+            diagnostic_type ILIKE %s OR
+            date::TEXT ILIKE %s OR
+            type ILIKE %s OR
+            diameter::TEXT ILIKE %s OR
+            material ILIKE %s OR
+            distance::TEXT ILIKE %s OR
+            problems ILIKE %s OR
+            author ILIKE %s
+        """
+        like_query = f"%{search_query}%"
+        cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
+    else:
+        cursor.execute("SELECT * FROM diagnostics")
+
     diagnostics = cursor.fetchall()
     conn.close()
+    
     return diagnostics
 
 # Получение полных данных конкретной диагностики из бд

@@ -126,12 +126,14 @@ def submit_diagnostic():
         
     return render_template('submit_form.html', error=error)
 
-@app.route('/view_diagnostics')
+@app.route('/view_diagnostics', methods=['GET'])
 def view_diagnostics():
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
-    diagnostics = get_diagnostics()
+    search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
+    
+    diagnostics = get_diagnostics(search_query)
 
     return render_template('view_page.html', diagnostics=diagnostics)
 

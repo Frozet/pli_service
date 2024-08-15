@@ -142,6 +142,17 @@
 
         <div class="main-content">
             <h2>Список всех диагностик</h2>
+            <div class="d-flex justify-content-end mb-3">
+              
+              <form class="form-inline" method="GET" action="{{ url_for('view_diagnostics') }}">
+                  <div class="input-group">
+                      <input type="text" name="search_query" class="form-control" placeholder="Введите запрос..." value="{{ request.args.get('search_query', '') }}">
+                      <div class="input-group-append">
+                          <button class="btn btn-primary" type="submit">Поиск</button>
+                      </div>
+                  </div>
+              </form>
+          </div>
             <table>
                 <thead>
                     <tr>
