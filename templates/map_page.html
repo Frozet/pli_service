@@ -197,6 +197,29 @@
                                     myMap.geoObjects.add(myPlacemark);
                                 });
                             {% endfor %}
+
+                            var areas = {{ areas|tojson|safe }};
+
+                            // Добавление многоугольников на карту
+                            areas.forEach(function(area) {
+                                var polygon = new ymaps.GeoObject({
+                                    geometry: {
+                                        type: "Polygon",
+                                        coordinates: [area.coordinates],
+                                        fillRule: "nonZero"
+                                    },
+                                    properties: {
+                                        hintContent: area.name
+                                    }
+                                }, {
+                                    fillColor: area.color + "40",
+                                    strokeColor: area.color,
+                                    strokeWidth: 3,
+                                    opacity: 0.5
+                                });
+
+                                myMap.geoObjects.add(polygon);
+                            });
                     }
             </script>
         </div>

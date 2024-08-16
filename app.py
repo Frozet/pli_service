@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session
+import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
@@ -160,7 +161,9 @@ def map_page():
      diagnostics = get_diagnostics_coordinates()
      diagnostics_list = [dict(row) for row in diagnostics]
      yandex_api_key = get_yandex_api_key()
-     return render_template('map_page.html', diagnostics=diagnostics_list, yandex_api_key=yandex_api_key)
+     with open('static/areas.json', 'r', encoding='utf-8') as f:
+        areas = json.load(f)
+     return render_template('map_page.html', diagnostics=diagnostics_list, yandex_api_key=yandex_api_key, areas=areas)
 
 
 if __name__ == '__main__':
