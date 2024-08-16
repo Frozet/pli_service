@@ -38,7 +38,7 @@ def get_diagnostics(search_query):
 
     diagnostics = cursor.fetchall()
     conn.close()
-    
+
     return diagnostics
 
 # Получение полных данных конкретной диагностики из бд
@@ -90,6 +90,7 @@ def data_from_add_to_db(request):
     diagnostic_material = request.form['material']
     diagnostic_distance = request.form['distance']
     diagnostic_author = request.form['author']
+    diagnostic_area = request.form['area']
     diagnostic_timestampdata = datetime.now()
     
     # Обработка колодцев, пролета и других данных
@@ -122,9 +123,9 @@ def data_from_add_to_db(request):
     diagnostic_problems = ','.join(diagnostic_problems)
     diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
 
-    return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+    return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata
 
-def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -133,8 +134,8 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     INSERT INTO diagnostics (
         short_title, address, diagnostic_type, date, coordinates, type, diameter, material, distance, 
         count_of_well, distance_between_wells, slope_between_wells, flow, 
-        author, problems, problems_distances, timestampdata
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        author, problems, problems_distances, timestampdata, area
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
     # Выполнение запроса
@@ -143,7 +144,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_area
     ))
 
     # Фиксация изменений и закрытие соединения
@@ -152,20 +153,21 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     
     return None
 
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata):
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_area):
     # Update the diagnostic in the database
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+    print('timestampdata:', diagnostic_timestampdata, 'area:', diagnostic_area)
     cursor.execute("""
-        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s
+        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s, area = %s
         WHERE id = %s
     """, (
         diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_id
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, 
+        diagnostic_id
         ))
     
     conn.commit()

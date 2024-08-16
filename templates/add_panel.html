@@ -17,21 +17,7 @@
     <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <style>
-      .btn-bd-primary {
-        --bd-violet-bg: #712cf9;
-        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
-        --bs-btn-font-weight: 600;
-        --bs-btn-color: var(--bs-white);
-        --bs-btn-bg: var(--bd-violet-bg);
-        --bs-btn-border-color: var(--bd-violet-bg);
-        --bs-btn-hover-color: var(--bs-white);
-        --bs-btn-hover-bg: #6528e0;
-        --bs-btn-hover-border-color: #6528e0;
-        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
-        --bs-btn-active-color: var(--bs-btn-hover-color);
-        --bs-btn-active-bg: #5a23c8;
-        --bs-btn-active-border-color: #5a23c8;
-      }
+      
 
       .main-content {
         display: flex;
@@ -202,6 +188,7 @@
 
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
+                        <input type="hidden" id="areaField" name="area" value="{{ diagnostic['area'] if edit_mode else '' }}">
                     </div>
                     <div class="form-section" style="align-content: start;">
                         <div class="mb-3">
@@ -290,7 +277,34 @@
         function init(){
             var myMap = new ymaps.Map("map", {
                 center: [{{ diagnostic['coordinates'] if edit_mode else '52.27,104.31' }}],
-                zoom: 13
+                zoom: 13,
+                interactivityModel: 'default#transparent' // Устанавливаем режим взаимодействия для карты
+            });
+
+            var areas = {{ areas|tojson|safe }};
+            var polygons = [];
+
+            // Создание многоугольников для участков
+            areas.forEach(function(area) {
+                var polygon = new ymaps.GeoObject({
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: [area.coordinates],
+                        fillRule: "nonZero"
+                    },
+                    properties: {
+                        // hintContent: area.name
+                    }
+                }, {
+                    fillColor: area.color + "1",
+                    strokeColor: area.color,
+                    strokeWidth: 3,
+                    opacity: 0.1,
+                    interactivityModel: 'default#transparent'
+                });
+
+                myMap.geoObjects.add(polygon);
+                polygons.push({name: area.name, polygon: polygon});
             });
 
             var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
@@ -300,13 +314,28 @@
                 // Размеры метки.
                 iconImageSize: [35, 35],
                 iconImageOffset: [-10, -10],
-                draggable: true // Позволяет перетаскивать маркер
+                // draggable: true // Позволяет перетаскивать маркер
             });
 
             myMap.geoObjects.add(placemark);
             // Обработчик события щелчка по карте
             myMap.events.add('click', function (e) {
                 var coords = e.get('coords');
+
+                // Проверка, в каком полигоне находится точка
+                var areaName = null;
+                polygons.forEach(function(area) {
+                    if (area.polygon.geometry.contains(coords)) {
+                        areaName = area.name;
+                    }
+                });
+
+                if (areaName) {
+                    document.getElementById('areaField').value = areaName;
+                } else {
+                    document.getElementById('areaField').value = 'ff';
+                }
+
                 // Перемещаем маркеры по щелчку в указанные координаты
                 placemark.geometry.setCoordinates(coords);
                 // Запись координат в скрытое поле
