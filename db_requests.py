@@ -13,12 +13,18 @@ def get_db_connection():
     return conn
 
 # Получение данных всех диагностик из бд
-def get_diagnostics(search_query):
+def get_diagnostics(search_query, sort_by, order, per_page, start):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Получаем общее количество записей для вычисления количества страниц
+    cursor.execute("SELECT COUNT(*) FROM diagnostics")
+    total_items = cursor.fetchone()['count']
+    total_pages = (total_items + per_page - 1) // per_page  # Округление вверх
+
     # Формируем SQL-запрос с использованием параметра search_query
     if search_query:
-        query = """
+        query = f"""
         SELECT * FROM diagnostics 
         WHERE 
             short_title ILIKE %s OR
@@ -30,16 +36,23 @@ def get_diagnostics(search_query):
             distance::TEXT ILIKE %s OR
             problems ILIKE %s OR
             author ILIKE %s
+        ORDER BY {sort_by} {order.upper()}
+        LIMIT {per_page} OFFSET {start}
         """
         like_query = f"%{search_query}%"
         cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
     else:
-        cursor.execute("SELECT * FROM diagnostics")
+        query = f"""
+            SELECT * FROM diagnostics
+            ORDER BY {sort_by} {order.upper()}
+            LIMIT {per_page} OFFSET {start}
+        """
+        cursor.execute(query)
 
     diagnostics = cursor.fetchall()
     conn.close()
 
-    return diagnostics
+    return diagnostics, total_pages
 
 # Получение полных данных конкретной диагностики из бд
 def get_diagnostic_detail(diagnostic_id):
@@ -55,8 +68,9 @@ def get_diagnostics_coordinates():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
-    cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics')
+    cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics LIMIT 20')
     diagnostics = cur.fetchall()
+    conn.close()
     return diagnostics
 
 # Форматирование данных для страницы с деталями инспекции

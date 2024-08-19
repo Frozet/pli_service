@@ -135,10 +135,20 @@ def view_diagnostics():
         return redirect(url_for('user_login'))
     
     search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
-    
-    diagnostics = get_diagnostics(search_query)
 
-    return render_template('view_page.html', diagnostics=diagnostics)
+    sort_by = request.args.get('sort_by', 'date')  # Сортировка по умолчанию - по дате
+    order = request.args.get('order', 'asc')  # Порядок сортировки по умолчанию - возрастание
+    page = int(request.args.get('page', 1))  # Текущая страница, по умолчанию - 1
+    per_page = 50  # Количество записей на странице
+
+    # Устанавливаем начальный и конечный индексы для пагинации
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    diagnostics, total_pages = get_diagnostics(search_query, sort_by, order, per_page, start)
+
+    return render_template('view_page.html', diagnostics=diagnostics, sort_by=sort_by, order=order,
+                           page=page, total_pages=total_pages)
 
 @app.route('/diagnostic_page/<int:diagnostic_id>')
 def diagnostic_page(diagnostic_id):
