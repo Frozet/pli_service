@@ -24,5 +24,5 @@ def create_user(username, password, full_name, role, area):
     conn.commit()
     conn.close()
 
-# Замените 'admin' и 'your_password' на желаемые имя пользователя и пароль
-create_user('admin', 'admin', 'Admin Admin', 'Admin', 'f')
+# Впишите нужные логин, пароль, полное имя, роль(Admin, User или Viewer) и тэг участка
+create_user('testuser', 'testuser', 'Тестов Тест Тестович', 'Viewer', 'ct')

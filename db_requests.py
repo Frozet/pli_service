@@ -12,6 +12,34 @@ def get_db_connection():
     )
     return conn
 
+def get_user_data(username):
+    # устанавливаем соединение с БД
+        conn = get_db_connection()
+        c = conn.cursor(cursor_factory=RealDictCursor)  # используем RealDictCursor
+        # создаем запрос для поиска пользователя по username,
+        # если такой пользователь существует, то получаем все данные id, password
+        c.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = c.fetchone()
+        # закрываем подключение БД
+        conn.close()
+        return user
+
+def get_user_password(user_id):
+    # Проверяем текущий пароль
+    conn = get_db_connection()
+    c = conn.cursor(cursor_factory=RealDictCursor)
+    c.execute('SELECT password FROM users WHERE id = %s', (user_id,))
+    stored_password = c.fetchone()['password']
+    return stored_password
+
+def update_user_password(hashed_new_password, user_id):
+    conn = get_db_connection()
+    c = conn.cursor(cursor_factory=RealDictCursor)
+    c.execute('UPDATE users SET password = %s WHERE id = %s', (hashed_new_password, user_id))
+    conn.commit()
+    conn.close()
+    return 'Пароль успешно изменен.'
+
 # Получение данных всех диагностик из бд
 def get_diagnostics(search_query, sort_by, order, per_page, start):
     conn = get_db_connection()
@@ -68,7 +96,7 @@ def get_diagnostics_coordinates():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
-    cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics LIMIT 20')
+    cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 20')
     diagnostics = cur.fetchall()
     conn.close()
     return diagnostics

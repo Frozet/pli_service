@@ -1,10 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, flash, render_template, redirect, url_for, request, session
 import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_db_connection, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_db_connection, get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from graph_generate import generate_diagnostic_plot
 
 app = Flask(__name__)
@@ -13,6 +13,7 @@ with open('static/secret_key.txt', 'r') as f:
 app.secret_key = key  # тут секретный ключ
 # секретный ключ для хеширования данных сессии при авторизации
 
+# Получение ключа от Yandex API
 def get_yandex_api_key():
     with open('static/yandex_api_key.txt', 'r') as f:
         yandex_api_key = f.readline()
@@ -33,15 +34,7 @@ def user_login():
         password = request.form['password']  # обрабатываем запрос с нашей формы который имеет атрибут name="password"
         hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()  # шифруем пароль в sha-256
 
-        # устанавливаем соединение с БД
-        conn = get_db_connection()
-        c = conn.cursor(cursor_factory=RealDictCursor)  # используем RealDictCursor
-        # создаем запрос для поиска пользователя по username,
-        # если такой пользователь существует, то получаем все данные id, password
-        c.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user = c.fetchone()
-        # закрываем подключение БД
-        conn.close()
+        user = get_user_data(username)
 
         # теперь проверяем если данные сходятся формы с данными БД
         if user and user['password'] == hashed_password:
@@ -58,6 +51,33 @@ def user_login():
             error = 'Неправильное имя пользователя или пароль'
 
     return render_template('login_adm.html', error=error)
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        # Проверяем, что новый пароль и подтверждение совпадают
+        if new_password != confirm_password:
+            flash('Новые пароли не совпадают.')
+            return redirect(url_for('change_password'))
+
+        stored_password = get_user_password(session['user_id'])
+
+        if hashlib.sha256(current_password.encode('utf-8')).hexdigest() != stored_password:
+            flash('Текущий пароль введен неверно.')
+            return redirect(url_for('change_password'))
+
+        # Обновляем пароль в базе данных
+        hashed_new_password = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+        update_password = update_user_password(hashed_new_password, session['user_id'])
+
+        flash(update_password)
+        return redirect(url_for('user_panel'))
+
+    return render_template('change_password.html')
 
 @app.route('/logout')
 def logout():
