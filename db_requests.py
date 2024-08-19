@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
+from flask import session
 
 # Подключение к бд
 def get_db_connection():
@@ -46,36 +47,68 @@ def get_diagnostics(search_query, sort_by, order, per_page, start):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # Получаем общее количество записей для вычисления количества страниц
-    cursor.execute("SELECT COUNT(*) FROM diagnostics")
+    if session['area'] == 'f':
+        cursor.execute("SELECT COUNT(*) FROM diagnostics")
+    else:
+        cursor.execute("SELECT COUNT(*) FROM diagnostics WHERE area = %s", (session['area'],))
     total_items = cursor.fetchone()['count']
     total_pages = (total_items + per_page - 1) // per_page  # Округление вверх
 
     # Формируем SQL-запрос с использованием параметра search_query
-    if search_query:
-        query = f"""
-        SELECT * FROM diagnostics 
-        WHERE 
-            short_title ILIKE %s OR
-            diagnostic_type ILIKE %s OR
-            date::TEXT ILIKE %s OR
-            type ILIKE %s OR
-            diameter::TEXT ILIKE %s OR
-            material ILIKE %s OR
-            distance::TEXT ILIKE %s OR
-            problems ILIKE %s OR
-            author ILIKE %s
-        ORDER BY {sort_by} {order.upper()}
-        LIMIT {per_page} OFFSET {start}
-        """
-        like_query = f"%{search_query}%"
-        cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
-    else:
-        query = f"""
-            SELECT * FROM diagnostics
+    if session['area'] == 'f':
+        if search_query:
+            query = f"""
+            SELECT * FROM diagnostics 
+            WHERE 
+                short_title ILIKE %s OR
+                diagnostic_type ILIKE %s OR
+                date::TEXT ILIKE %s OR
+                type ILIKE %s OR
+                diameter::TEXT ILIKE %s OR
+                material ILIKE %s OR
+                distance::TEXT ILIKE %s OR
+                problems ILIKE %s OR
+                author ILIKE %s
             ORDER BY {sort_by} {order.upper()}
             LIMIT {per_page} OFFSET {start}
-        """
-        cursor.execute(query)
+            """
+            like_query = f"%{search_query}%"
+            cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
+        else:
+            query = f"""
+                SELECT * FROM diagnostics
+                ORDER BY {sort_by} {order.upper()}
+                LIMIT {per_page} OFFSET {start}
+            """
+            cursor.execute(query)
+    else:
+        if search_query:
+            query = f"""
+            SELECT * FROM diagnostics 
+            WHERE 
+                short_title ILIKE %s OR
+                diagnostic_type ILIKE %s OR
+                date::TEXT ILIKE %s OR
+                type ILIKE %s OR
+                diameter::TEXT ILIKE %s OR
+                material ILIKE %s OR
+                distance::TEXT ILIKE %s OR
+                problems ILIKE %s OR
+                author ILIKE %s AND
+                area = '{session['area']}'
+            ORDER BY {sort_by} {order.upper()}
+            LIMIT {per_page} OFFSET {start}
+            """
+            like_query = f"%{search_query}%"
+            cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
+        else:
+            query = f"""
+                SELECT * FROM diagnostics
+                WHERE area = '{session['area']}'
+                ORDER BY {sort_by} {order.upper()}
+                LIMIT {per_page} OFFSET {start}
+            """
+            cursor.execute(query)
 
     diagnostics = cursor.fetchall()
     conn.close()
@@ -96,7 +129,12 @@ def get_diagnostics_coordinates():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
-    cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 20')
+    if session['area'] == 'f':
+        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 20')
+    else:
+        # Для пользователей отдельных участков будут показаны диагностики только с их участка
+        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE area = '{session['area']}' ORDER BY id ASC LIMIT 20"""
+        cur.execute(query)
     diagnostics = cur.fetchall()
     conn.close()
     return diagnostics

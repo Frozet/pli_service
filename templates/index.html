@@ -131,7 +131,9 @@
                 <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
                 <span class="fs-4">PLI Service</span>
             </a>    <ul class="nav nav-pills">
-                <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+                {% if session['role'] == 'User' or session['role'] == 'Admin'%}
+                  <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+                {% endif %}
                 <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
                 <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>

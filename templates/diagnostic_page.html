@@ -61,7 +61,9 @@
             <span class="fs-4">PLI Service</span>
           </a>
           <ul class="nav nav-pills">
-            <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+            {% if session['role'] == 'User' or session['role'] == 'Admin'%}
+              <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+            {% endif %}
             <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
             <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
             <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
@@ -80,10 +82,12 @@
 
             <!-- Right-aligned buttons -->
               <div>
-                <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
-                    <button class="btn btn-secondary">Изменить</button>
-                </a>
-                <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
+                {% if session['role'] == 'User' or session['role'] == 'Admin'%}
+                  <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
+                      <button class="btn btn-secondary">Изменить</button>
+                  </a>
+                  <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
+                {% endif %}
             </div>
         </div>
 
@@ -104,7 +108,7 @@
               <li><strong>Диагностика проведена:</strong>
                 {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
                   {% if not loop.first %}, {% endif %}
-                  из колодца {{ wells_firsts }} {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до колодца {{ wells_seconds }}
+                  из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
                 {% endfor %}
               </li>
               <li><strong>Обнаружено:</strong>

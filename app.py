@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_db_connection, get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from graph_generate import generate_diagnostic_plot
 
 app = Flask(__name__)
@@ -93,29 +93,30 @@ def admin_panel():
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
-    user_name = session['username']
     role = session['role']
     if role == 'Admin':
         return render_template('admin_panel.html', role=role)
     else:
-        return render_template('user_panel.html', user_name=user_name, role=role)
+        return render_template('user_panel.html')
 
-# Страница аккаунта обычного пользователя
+# Страница аккаунта редактора или пользователя
 @app.route('/user_panel.html')
 def user_panel():
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
 
-    user_name = session['username'] 
-    role = session['role']
-    return render_template('user_panel.html', user_name=user_name, role=role)
+    return render_template('user_panel.html')
 
 # Добавление диагностики
 @app.route('/add_diagnostic/<int:diagnostic_id>', methods=['GET', 'POST'])
 def add_diagnostic(diagnostic_id):
-    
+    # Добавлять диагностики возможно только редактору или админу
+    if session['role'] == 'Viewer':
+        return redirect(url_for('index'))
+
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
+    
     with open('static/areas.json', 'r', encoding='utf-8') as f:
         areas = json.load(f)
     if diagnostic_id:
