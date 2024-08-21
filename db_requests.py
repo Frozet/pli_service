@@ -141,14 +141,32 @@ def get_diagnostics_coordinates():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
     if session['area'] == 'f':
-        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 20')
+        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 25') # Лимит 25, потому что при большом количестве сильно грузит страницу
     else:
         # Для пользователей отдельных участков будут показаны диагностики только с их участка
-        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE area = '{session['area']}' ORDER BY id ASC LIMIT 20"""
+        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE area = '{session['area']}' ORDER BY id ASC LIMIT 25"""
         cur.execute(query)
     diagnostics = cur.fetchall()
     conn.close()
     return diagnostics
+
+# Получение данных всех пользователей
+def get_users():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT id, username, full_name, role, area FROM users')
+    users = cur.fetchall()
+    conn.close()
+    return users
+
+# Полуечние данных пользователя
+def get_user(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT id, username, full_name, role, area FROM users WHERE id = %s', (user_id,))
+    user = cur.fetchone()
+    conn.close()
+    return user
 
 # Форматирование данных для страницы с деталями инспекции
 def format_diagnostic_data(diagnostic):

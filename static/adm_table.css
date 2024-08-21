@@ -1,0 +1,102 @@
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background-color: #343a40;
+    color: white;
+    padding: 10px;
+}
+
+.header a {
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar {
+    background-color: #f8f9fa;
+    padding: 15px;
+    min-width: 200px;
+}
+
+.content {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.card-header {
+    background-color: #1f4bdc;
+}
+
+.logout-button {
+    background-color: #1f4bdc;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: #315cea;
+}
+.form-inline {
+align-items: end;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 13px; /* Уменьшенный шрифт */
+    background-color: #fff; /* Белый фон для таблицы */
+}
+
+th, td {
+    border: 1px solid #dee2e6; /* Легкий серый цвет для границ */
+    padding: 6px 10px; /* Уменьшенные отступы */
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background-color: #dbdce0; /* Темный фон для заголовков */
+    color: #1d1d1d; /* Белый цвет текста для заголовков */
+    position: sticky; /* Закрепление заголовков при скролле */
+    top: 0;
+    z-index: 2;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8f9fa; /* Чередующийся фон для строк */
+}
+
+tbody tr:hover {
+    background-color: #e9ecef; /* Светло-серый фон при наведении */
+}
+
+.table-responsive {
+    overflow-x: auto; /* Горизонтальная прокрутка для маленьких экранов */
+}
+
+.pagination {
+    margin-top: 10px;
+}
+
+.page-link {
+    color: #343a40; /* Цвет ссылок на странице навигации */
+}
+
+.page-link:hover {
+    color: #007bff; /* Синий цвет при наведении */
+}
+
+.page-item.active .page-link {
+    background-color: #343a40; /* Темный фон для активной страницы */
+    border-color: #343a40;
+}
+
+.sphead {
+    display: flex;
+    justify-content: center;
+}

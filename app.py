@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from graph_generate import generate_diagnostic_plot
 
 app = Flask(__name__)
@@ -83,7 +83,7 @@ def change_password():
 def logout():
     # Удаление данных пользователя из сессии
     session.clear()
-    # Перенаправление на главную страницу или страницу входа
+    # Перенаправление на главную страницу
     return redirect(url_for('index'))
 
 # Страница админ панели
@@ -93,9 +93,57 @@ def admin_panel():
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
-    role = session['role']
-    if role == 'Admin':
-        return render_template('admin_panel.html', role=role)
+    if session['role'] == 'Admin':
+        return render_template('admin_panel.html')
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - таблица диагностик
+@app.route('/admin_diagnostics', methods=['GET'])
+def admin_diagnostics():
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
+    area_filter = request.args.get('areaFilter', 'all')
+    sort_by = request.args.get('sort_by', 'date')  # Сортировка по умолчанию - по дате
+    order = request.args.get('order', 'asc')  # Порядок сортировки по умолчанию - возрастание
+    page = int(request.args.get('page', 1))  # Текущая страница, по умолчанию - 1
+    per_page = 100  # Количество записей на странице
+    start = (page - 1) * per_page
+    end = start + per_page
+    diagnostics, total_pages = get_diagnostics(search_query, area_filter, sort_by, order, per_page, start)
+
+    if session['role'] == 'Admin':
+        return render_template('admin_diagnostics.html', diagnostics=diagnostics, sort_by=sort_by, order=order,
+                           page=page, total_pages=total_pages)
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - таблица пользователей    
+@app.route('/admin_users')
+def admin_users():
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        users = get_users()
+        return render_template('admin_users.html', users=users)
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - изменение пользователя    
+@app.route('/admin_edit_user/<int:user_id>')
+def admin_edit_user(user_id):
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        user = get_user(user_id)
+        return render_template('admin_edit_user.html', user=user)
     else:
         return render_template('user_panel.html')
 

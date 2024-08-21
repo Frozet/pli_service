@@ -50,7 +50,7 @@
                 <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
-                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">Аккаунт</a></li>
+                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">{% if session['role'] == 'Admin' %}Панель администратора{% else %}Аккаунт{% endif %}</a></li>
             </ul>
             </header>
         </div>
