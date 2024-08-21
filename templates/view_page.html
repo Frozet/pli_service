@@ -21,9 +21,9 @@
       .main-content {
         display: flex;
         flex-direction: column;
-        align-items: center;
+
         justify-content: center;
-        margin: 0;
+        margin: 20px;
         margin-top: 10px;
 
       }
@@ -40,6 +40,10 @@
         }
         th {
             background-color: #ececec;
+        }
+        .sphead {
+          display: flex;
+          justify-content: center;
         }
     </style>
 
@@ -67,20 +71,42 @@
             </ul>
             </header>
         </div>
-
+        <div class="sphead">
+          <h2>Список всех диагностик</h2>
+        </div>
         <div class="main-content">
-            <h2>Список всех диагностик</h2>
-            <div class="d-flex justify-content-end mb-3">
-              
-              <form class="form-inline" method="GET" action="{{ url_for('view_diagnostics') }}">
+            
+            <div class="d-flex justify-content-between mb-3">
+              {% if session['role'] != 'Viewer' %}
+                  <!-- Форма для фильтрации по участкам -->
+                  <form class="form-inline d-flex align-items-center" method="GET" action="{{ url_for('view_diagnostics') }}">
+                      <div class="me-2">
+                          <select id="areaFilter" name="areaFilter" class="form-select">
+                              <option value="all">Все участки</option>
+                              <option value="ct">ct</option>
+                              <option value="op">op</option>
+                              <option value="ss">ss</option>
+                              <option value="sn">sn</option>
+                              <option value="ls">ls</option>
+                              <option value="ln">ln</option>
+                              <option value="ff">ff</option>
+                          </select>
+                      </div>
+                      <div>
+                          <button class="btn btn-primary" type="submit">Принять</button>
+                      </div>
+                  </form>
+              {% endif %}
+          
+              <!-- Форма для поиска -->
+              <form class="form-inline d-flex align-items-center" method="GET" action="{{ url_for('view_diagnostics') }}">
                   <div class="input-group">
                       <input type="text" name="search_query" class="form-control" placeholder="Введите запрос..." value="{{ request.args.get('search_query', '') }}">
-                      <div class="input-group-append">
-                          <button class="btn btn-primary" type="submit">Поиск</button>
-                      </div>
+                      <button class="btn btn-primary" type="submit">Поиск</button>
                   </div>
               </form>
           </div>
+          
             <table class="table table-striped">
                 <thead>
                     <tr>

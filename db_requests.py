@@ -42,7 +42,7 @@ def update_user_password(hashed_new_password, user_id):
     return 'Пароль успешно изменен.'
 
 # Получение данных всех диагностик из бд
-def get_diagnostics(search_query, sort_by, order, per_page, start):
+def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -53,10 +53,15 @@ def get_diagnostics(search_query, sort_by, order, per_page, start):
         cursor.execute("SELECT COUNT(*) FROM diagnostics WHERE area = %s", (session['area'],))
     total_items = cursor.fetchone()['count']
     total_pages = (total_items + per_page - 1) // per_page  # Округление вверх
+    
 
     # Формируем SQL-запрос с использованием параметра search_query
     if session['area'] == 'f':
         if search_query:
+            if area_filter == 'all':
+                area_count = ''
+            else:
+                area_count = f" AND area = '{area_filter}'"
             query = f"""
             SELECT * FROM diagnostics 
             WHERE 
@@ -69,14 +74,20 @@ def get_diagnostics(search_query, sort_by, order, per_page, start):
                 distance::TEXT ILIKE %s OR
                 problems ILIKE %s OR
                 author ILIKE %s
+                {area_count}
             ORDER BY {sort_by} {order.upper()}
             LIMIT {per_page} OFFSET {start}
             """
             like_query = f"%{search_query}%"
             cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
         else:
+            if area_filter == 'all':
+                area_count = ''
+            else:
+                area_count = f"WHERE area = '{area_filter}'"
             query = f"""
                 SELECT * FROM diagnostics
+                {area_count}
                 ORDER BY {sort_by} {order.upper()}
                 LIMIT {per_page} OFFSET {start}
             """
