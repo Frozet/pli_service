@@ -35,24 +35,54 @@
             {% block content %}
             <div>
                 <h3>Пользователь {{user['username']}}</h3>
-              </div>
-              <div class="main-content">
-                
-
-                            <ul>
-                                <li>{{ user['id'] }}</li>
-                                <li>{{ user['username'] }}</li>
-                                <li>{{ user['full_name'] }}</li>
-                                <li>{{ user['role'] }}</li>
-                                <li>{% if user['area'] == 'f' %}Все участки{% else %}{{ user['area'] }}{% endif %}</li>
-                            </ul>
-
-                </div>
-              </div>
+            </div>
+            
+            <div class="main-content">
+                <div style="width: 50%;">
+                <!-- Таблица с информацией о пользователе -->
+                <table class="table table-bordered">
+                    <tr>
+                        <th>ID</th>
+                        <td>{{ user['id'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Логин</th>
+                        <td>{{ user['username'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Полное имя</th>
+                        <td>{{ user['full_name'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Роль</th>
+                        <td>{% if user['role'] == 'User' %}Редактор{% elif user['role'] == 'Viewer' %}Пользователь{% else %}{{ user['role'] }}{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>Участок</th>
+                        <td>{% if user['area'] == 'f' %}Все участки{% else %}{{ user['area'] }}{% endif %}</td>
+                    </tr>
+                </table>
+            </div>
+                {% if user['role'] != 'Admin' %}
+                    <div>
+                    <!-- Кнопка "Изменить", которая ведет на страницу редактирования пользователя -->
+                        <a href="{{ url_for('admin_edit_user_form', user_id=user['id']) }}"><button class="btn btn-primary">Изменить данные</button></a>
+                        <button class="btn btn-danger" onclick="confirmDeletion()">Удалить пользователя</button>
+                    </div>
+                {% endif %}
+            </div>
+            
             {% endblock %}
         </div>
     </div>
-
+    <script>
+        function confirmDeletion() {
+            if (confirm("Вы уверены, что хотите удалить пользователя {{ user['username'] }}?")) {
+                // Redirect to the delete route
+                window.location.href = "{{ url_for('admin_delete_user', user_id=user['id']) }}";
+            }
+        }
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 

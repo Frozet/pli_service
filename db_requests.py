@@ -159,7 +159,7 @@ def get_users():
     conn.close()
     return users
 
-# Полуечние данных пользователя
+# Получение данных пользователя
 def get_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -167,6 +167,27 @@ def get_user(user_id):
     user = cur.fetchone()
     conn.close()
     return user
+ # Редактирование данных пользователя
+def update_user(user_id, username, full_name, role, area):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        UPDATE users SET username = %s, full_name = %s, role = %s, area = %s
+        WHERE id = %s
+    """, (username, full_name, role, area, user_id))
+    
+    conn.commit()
+    conn.close()
+    return None
+
+# Удаление пользователя
+def delete_user(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    conn.commit()
+    conn.close()
+    return None
 
 # Форматирование данных для страницы с деталями инспекции
 def format_diagnostic_data(diagnostic):
@@ -266,7 +287,6 @@ def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind
     # Update the diagnostic in the database
     conn = get_db_connection()
     cursor = conn.cursor()
-    print('timestampdata:', diagnostic_timestampdata, 'area:', diagnostic_area)
     cursor.execute("""
         UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s, area = %s
         WHERE id = %s

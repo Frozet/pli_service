@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ Панель - PLI Service</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+    
+
+    <link href="{{ url_for('static', filename='adm_table.css') }}" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Header -->
+    <div class="header d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('index') }}" class="h5 mb-0">PLI Service</a>
+        <div class="d-flex align-items-center">
+            <span class="mr-3">Вы зашли как {{ session['username'] }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-button">Выход</a>
+        </div>
+    </div>
+
+    <div class="d-flex flex-grow-1">
+        <!-- Sidebar -->
+        <div class="sidebar d-flex flex-column">
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-light mb-2">Информация</a>
+            <a href="{{ url_for('admin_diagnostics') }}" class="btn btn-light mb-2">Диагностики</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-light mb-2">Пользователи</a>
+            <a href="#" class="btn btn-light mb-2">Настройки</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            {% block content %}
+            <form method="POST" action="{{ url_for('admin_add_user') }}">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" class="form-control" id="username" name="username" value="" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" class="form-control" id="password" name="password" value="" required>
+                </div>
+                <div class="form-group">
+                    <label for="full_name">Полное имя</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">Роль</label>
+                    <select class="form-control" id="role" name="role" required>
+                        <option value="User">Редактор</option>
+                        <option value="Viewer">Пользователь</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="area">Участок</label>
+                    <select id="area" name="area" class="form-control" required>
+                        <option value="f">Все участки</option>
+                        <option value="ct">ct</option>
+                        <option value="op">op</option>
+                        <option value="ss">ss</option>
+                        <option value="sn">sn</option>
+                        <option value="ls">ls</option>
+                        <option value="ln">ln</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить пользователя</button>
+            </form>
+            
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+
+    <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

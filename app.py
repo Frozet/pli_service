@@ -4,7 +4,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
 app = Flask(__name__)
@@ -134,7 +135,7 @@ def admin_users():
     else:
         return render_template('user_panel.html')
 
-# Страница админ панели - изменение пользователя    
+# Страница админ панели - окно пользователя    
 @app.route('/admin_edit_user/<int:user_id>')
 def admin_edit_user(user_id):
     # делаем доп проверку если сессия авторизации была создана
@@ -146,6 +147,58 @@ def admin_edit_user(user_id):
         return render_template('admin_edit_user.html', user=user)
     else:
         return render_template('user_panel.html')
+
+# Страница админ панели - добавление пользователя
+@app.route('/admin_add_user', methods=['GET', 'POST'])
+def admin_add_user():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    if session['role'] == 'Admin':
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            full_name = request.form['full_name']
+            role = request.form['role']
+            area = request.form['area']
+            create_user(username, password, full_name, role, area)
+
+            return redirect(url_for('admin_users'))
+        
+        return render_template('admin_add_user.html')
+    else:
+        return render_template('user_panel.html')
+
+
+# Страница админ панели - изменение пользователя    
+@app.route('/admin_edit_user_form/<int:user_id>', methods=['GET', 'POST'])
+def admin_edit_user_form(user_id):
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        user = get_user(user_id)
+        if request.method == 'POST':
+            # Обновить данные пользователя на основе введенных данных
+            username = request.form['username']
+            full_name = request.form['full_name']
+            role = request.form['role']
+            area = request.form['area']
+
+            update_user(user_id, username, full_name, role, area)
+
+            return redirect(url_for('admin_edit_user', user_id=user_id))
+        
+        return render_template('admin_edit_user_form.html', user=user)
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - удаление пользователя
+@app.route('/admin_delete_user/<int:user_id>')
+def admin_delete_user(user_id):
+    if session['role'] == 'Admin':
+        delete_user(user_id)
+    return redirect(url_for('admin_users'))
 
 # Страница аккаунта редактора или пользователя
 @app.route('/user_panel.html')

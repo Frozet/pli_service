@@ -33,36 +33,29 @@
         <!-- Main Content -->
         <div class="content">
             {% block content %}
-            <div>
-                <h3>Пользователи</h3>
-              </div>
-              <div class="main-content">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Логин</th>
-                                <th>Полное имя</th>
-                                <th>Роль</th>
-                                <th>Участок</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td>{{ user['id'] }}</td>
-                                <td><a href="{{ url_for('admin_edit_user', user_id=user['id']) }}">{{ user['username'] }}</a></td>
-                                <td>{{ user['full_name'] }}</td>
-                                <td>{% if user['role'] == 'Admin' %}Админ{% elif user['role'] == 'User' %}Редактор{% else %}Пользователь{% endif %}</td>
-                                <td>{% if user['area'] == 'f' %}Все участки{% else %}{{ user['area'] }}{% endif %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <form method="POST" action="{{ url_for('admin_edit_user_form', user_id=user['id']) }}">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}">
                 </div>
-                <a href="{{ url_for('admin_add_user') }}"><button class="btn btn-primary">Добавить пользователя</button></a>
-              </div>
+                <div class="form-group">
+                    <label for="full_name">Полное имя</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user['full_name'] }}">
+                </div>
+                <div class="form-group">
+                    <label for="role">Роль</label>
+                    <select class="form-control" id="role" name="role">
+                        <option value="User" {% if user['role'] == 'User' %}selected{% endif %}>Редактор</option>
+                        <option value="Viewer" {% if user['role'] == 'Viewer' %}selected{% endif %}>Пользователь</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="area">Участок</label>
+                    <input type="text" class="form-control" id="area" name="area" value="{{ user['area'] }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            </form>
+            
             {% endblock %}
         </div>
     </div>
