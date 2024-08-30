@@ -7,7 +7,8 @@ def generate_diagnostic_plot(diagnostic):
     distances = list(map(float, diagnostic['distance_between_wells'].split(',')))
     slopes = list(map(float, diagnostic['slope_between_wells'].split(',')))
     wells = diagnostic['count_of_well'].split(',')
-    problems_distances = list(map(float, diagnostic['problems_distances'].split(',')))
+    if diagnostic['problems_distances']:
+        problems_distances = list(map(float, diagnostic['problems_distances'].split(',')))
     total_distance = float(diagnostic['distance'])
     flow = diagnostic['flow'].split(',')
 
@@ -32,8 +33,9 @@ def generate_diagnostic_plot(diagnostic):
     ax.text(0.1, current_distance, f'КК {wells[-1]}', va='center', fontsize=10, zorder=4)
 
     # Отрисовка проблем поверх линии
-    for i, problem_distance in enumerate(problems_distances):
-        ax.scatter([0], [problem_distance], color='orange', s=120, marker='s', zorder=3)
+    if diagnostic['problems_distances']:
+        for i, problem_distance in enumerate(problems_distances):
+            ax.scatter([0], [problem_distance], color='orange', s=120, marker='s', zorder=3)
 
     # Настройка шкалы расстояний
     ax.set_xlim([-1, 1])

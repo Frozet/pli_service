@@ -82,6 +82,9 @@
 
             <!-- Right-aligned buttons -->
               <div>
+                <a href="{{ url_for('generate_pdf', diagnostic_id=diagnostic['id']) }}">
+                  <button class="btn btn-secondary">Загрузить отчет</button>
+              </a>
                 {% if session['role'] == 'User' or session['role'] == 'Admin'%}
                   <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
                       <button class="btn btn-secondary">Изменить</button>
@@ -112,10 +115,14 @@
                 {% endfor %}
               </li>
               <li><strong>Обнаружено:</strong>
-                {% for problem, distance in problem_details %}
-                  {% if not loop.first %}, {% endif %}
-                  {{ problem }} на расстоянии {{ distance }} м
-                {% endfor %}
+                {% if problem_details %}
+                  {% for problem, distance in problem_details %}
+                    {% if not loop.first %}, {% endif %}
+                    {{ problem }} на расстоянии {{ distance }} м
+                  {% endfor %}
+                {% else %}
+                  Проблем не обнаружено
+                {% endif %}
               </li>
               <li><strong>Автор:</strong> {{ diagnostic['author'] }}</li>
             </ul>

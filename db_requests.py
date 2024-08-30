@@ -141,7 +141,7 @@ def get_diagnostics_coordinates():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
     if session['area'] == 'f':
-        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id ASC LIMIT 25') # Лимит 25, потому что при большом количестве сильно грузит страницу
+        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id DESC LIMIT 25') # Лимит 25, потому что при большом количестве сильно грузит страницу
     else:
         # Для пользователей отдельных участков будут показаны диагностики только с их участка
         query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE area = '{session['area']}' ORDER BY id ASC LIMIT 25"""
@@ -191,10 +191,13 @@ def delete_user(user_id):
 
 # Форматирование данных для страницы с деталями инспекции
 def format_diagnostic_data(diagnostic):
-     # Подготовка проблем и расстояний
-    problems = diagnostic['problems'].split(',')
-    distances = diagnostic['problems_distances'].split(',')
-    problem_details = list(zip(problems, distances))  # Создание списка кортежей (проблема, расстояние)
+    if diagnostic['problems']:
+        # Подготовка проблем и расстояний
+        problems = diagnostic['problems'].split(',')
+        distances = diagnostic['problems_distances'].split(',')
+        problem_details = list(zip(problems, distances))  # Создание списка кортежей (проблема, расстояние)
+    else:
+        problem_details = []
     # Подготовка даты
     date_of_diagnostic = diagnostic['date'].split('-')
     format_date = date_of_diagnostic[2] + '.' + date_of_diagnostic[1] + '.' +  date_of_diagnostic[0] # Форматирование в удобный формат
@@ -219,7 +222,7 @@ def data_from_add_to_db(request):
     diagnostic_diameter = request.form['diameter']
     diagnostic_material = request.form['material']
     diagnostic_distance = request.form['distance']
-    diagnostic_author = request.form['author']
+    diagnostic_author = session['full_name']
     diagnostic_area = request.form['area']
     diagnostic_timestampdata = datetime.now()
     
@@ -250,12 +253,20 @@ def data_from_add_to_db(request):
     diagnostic_spans = ','.join(diagnostic_spans)
     diagnostic_slopes = ','.join(diagnostic_slopes)
     diagnostic_flows = ','.join(diagnostic_flows)
-    diagnostic_problems = ','.join(diagnostic_problems)
-    diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
+    if diagnostic_problems: # Если проблема указана, записываем
+        diagnostic_problems = ','.join(diagnostic_problems)
+    else: # Иначе пустое поле
+        diagnostic_problems = ''
+    if diagnostic_problem_distances:
+        diagnostic_problem_distances = ','.join(diagnostic_problem_distances)
+    else:
+        diagnostic_problem_distances = ''
+
+    
 
     return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata
 
-def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata):
+def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, saved_files=''):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -264,8 +275,8 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     INSERT INTO diagnostics (
         short_title, address, diagnostic_type, date, coordinates, type, diameter, material, distance, 
         count_of_well, distance_between_wells, slope_between_wells, flow, 
-        author, problems, problems_distances, timestampdata, area
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        author, problems, problems_distances, timestampdata, area, photo_path
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
     # Выполнение запроса
@@ -274,7 +285,8 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_area
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, 
+        diagnostic_area, saved_files
     ))
 
     # Фиксация изменений и закрытие соединения

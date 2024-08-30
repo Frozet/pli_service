@@ -1,4 +1,9 @@
-from flask import Flask, flash, render_template, redirect, url_for, request, session
+from datetime import datetime
+import io
+import os
+from werkzeug.utils import secure_filename
+import pdfkit
+from flask import Flask, flash, render_template, redirect, url_for, request, session, send_file
 import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -8,11 +13,22 @@ from db_requests import get_user_data, get_user_password, update_user_password, 
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
 app = Flask(__name__)
 with open('static/secret_key.txt', 'r') as f:
         key = f.readline()
 app.secret_key = key  # тут секретный ключ
 # секретный ключ для хеширования данных сессии при авторизации
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Настройка пути к wkhtmltopdf
+config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')  # укажите правильный путь
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Получение ключа от Yandex API
 def get_yandex_api_key():
@@ -246,8 +262,24 @@ def edit_diagnostic(diagnostic_id):
 def submit_diagnostic():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
+        # Обработка загруженных файлов
+        # Эта часть пока не работает________________
+        print(request.files)
+        files = request.files.getlist('photos')
+        print(files)
+        saved_files = []
+        for file in files:
+            print(file)
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                saved_files.append(file_path)
+                print(saved_files)
+        # __________________________________________
+
         diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata = data_from_add_to_db(request)
-        insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata)
+        insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(saved_files))
         
     return render_template('submit_form.html', error=error)
 
@@ -282,6 +314,28 @@ def diagnostic_page(diagnostic_id):
     plot_buf = generate_diagnostic_plot(diagnostic)
     
     return render_template('diagnostic_page.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'))
+
+@app.route('/diagnostic/<int:diagnostic_id>/generate_pdf')
+def generate_pdf(diagnostic_id):
+    # Загрузите данные о диагностике по идентификатору
+    diagnostic = get_diagnostic_detail(diagnostic_id)
+    current_date = datetime.now().strftime("%d.%m.%Y")  # Форматирование даты
+    problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
+    plot_buf = generate_diagnostic_plot(diagnostic)
+
+    # Рендеринг HTML-шаблона для PDF
+    rendered = render_template('diagnostic_pdf.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'), current_date=current_date)
+
+    # Генерация PDF из рендеренного HTML
+    pdf = pdfkit.from_string(rendered, False, configuration=config)
+
+    # Отправка PDF-файла в качестве ответа
+    response = send_file(
+        io.BytesIO(pdf),
+        download_name='diagnostic_report.pdf',
+        as_attachment=True
+    )
+    return response
 
 @app.route('/delete/<int:diagnostic_id>')
 def delete_diagnostic(diagnostic_id):

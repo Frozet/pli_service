@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отчет по диагностике</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header .logo {
+            font-size: 24px;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .header .location {
+            font-size: 12px;
+            color: #333;
+        }
+        .header .author {
+            text-align: right;
+            font-size: 12px;
+            color: #333;
+        }
+        .header .executor {
+            text-align: right;
+            font-size: 12px;
+            color: #333;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            color: #007bff; /* Синий цвет */
+            font-weight: bold;
+        }
+        .diagnostic-details, .problem-details {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            text-align: right;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Верхний блок с логотипом и городом -->
+    <div class="header">
+        <div class="logo">PLI Service</div>
+        <div class="location">г. Иркутск</div>
+    </div>
+
+    <!-- Верхний блок с заголовком и автором -->
+    <div class="header">
+        <h1>Отчет по диагностике</h1>
+        <div>
+            <div class="executor">Исполнитель: МУП "Водоканал" г. Иркутска</div>
+            <div class="author">Диагностику произвел: {{ session['full_name'] }}</div>
+        </div>
+    </div>
+
+    <!-- Таблица с основной информацией -->
+    <table>
+        <tr>
+            <th>Адрес</th>
+            <td>{{ diagnostic['address'] }}</td>
+        </tr>
+        <tr>
+            <th>Дата</th>
+            <td>{{ format_date }}</td>
+        </tr>
+        <tr>
+            <th>Тип диагностики</th>
+            <td>{{ diagnostic['diagnostic_type'] }}</td>
+        </tr>
+        <tr>
+            <th>Диаметр</th>
+            <td>{{ diagnostic['diameter'] }} мм</td>
+        </tr>
+        <tr>
+            <th>Материал</th>
+            <td>{{ diagnostic['material'] }}</td>
+        </tr>
+        <tr>
+            <th>Дистанция</th>
+            <td>{{ diagnostic['distance'] }} м</td>
+        </tr>
+    </table>
+
+    <!-- Поле для текста "Диагностика проведена:" и "Обнаружено:" -->
+    <div class="diagnostic-details">
+        <strong>Диагностика проведена:</strong>
+        <p>
+            {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
+                {% if not loop.first %}, {% endif %}
+                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>
+            {% endfor %}
+        </p>
+    </div>
+
+    <div class="problem-details">
+        <strong>Обнаружено:</strong>
+        <p>
+            {% if problem_details %}
+                {% for problem, distance in problem_details %}
+                    {% if not loop.first %}, {% endif %}
+                    {{ problem }} на расстоянии {{ distance }} м
+                {% endfor %}
+            {% else %}
+                Проблем не обнаружено
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Блок для графика -->
+    <div class="graph">
+        <h2>График</h2>
+        <img src="data:image/png;base64,{{ plot_image }}" alt="График диагностики">
+    </div>
+
+    <!-- Дата обращения -->
+    <div class="footer">
+        Дата обращения: {{ current_date }}
+    </div>
+
+</body>
+</html>

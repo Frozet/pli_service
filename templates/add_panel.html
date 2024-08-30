@@ -2,18 +2,11 @@
 <html lang="en" data-bs-theme="auto">
   <head><script src="../assets/js/color-modes.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.122.0">
     <title>Добавление диагностики</title>
-
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
-
     <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <style>
@@ -38,7 +31,7 @@
         padding-left: 20px;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: left;
       }
 
       #map {
@@ -53,9 +46,7 @@
 
   </head>
   <body>
-
     <main>
-
         <div class="container">
             <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    
                 <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
@@ -84,7 +75,7 @@
                     <h2>Добавление новой диагностики</h2>
                 {% endif %}
 
-                <form id="diagnosticForm" action="{{ url_for('edit_diagnostic', diagnostic_id=diagnostic['id']) if edit_mode else '/submit_form' }}" method="post">
+                <form id="diagnosticForm" action="{{ url_for('edit_diagnostic', diagnostic_id=diagnostic['id']) if edit_mode else '/submit_form' }}" method="post" enctype="multipart/form-data">
                     <!-- Первый блок -->
                     <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Общая информация</h3>
@@ -101,6 +92,7 @@
                             <select class="form-select" id="type" name="type" required>
                                 <option value="КК" {% if edit_mode and diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>
                                 <option value="ВК" {% if edit_mode and diagnostic['type'] == 'ВК' %} selected {% endif %}>ВК</option>
+                                <option value="К" {% if edit_mode and diagnostic['type'] == 'К' %} selected {% endif %}>Другое</option>
                             </select>
                         </div>
                         <div>
@@ -123,7 +115,7 @@
                         <div>
                             <label for="material" class="form-label">Материал</label>
                             <select class="form-select" id="material" name="material" required>
-                                <option value="Корсис" {% if edit_mode and diagnostic['material'] == 'Корсис' %} selected {% endif %}>Корсис</option>
+                                <option value="Пластик" {% if edit_mode and diagnostic['material'] == 'Пластик' %} selected {% endif %}>Пластик</option>
                                 <option value="Бетон" {% if edit_mode and diagnostic['material'] == 'Бетон' %} selected {% endif %}>Бетон</option>
                                 <option value="ПНД" {% if edit_mode and diagnostic['material'] == 'ПНД' %} selected {% endif %}>ПНД</option>
                                 <option value="Керамика" {% if edit_mode and diagnostic['material'] == 'Керамика' %} selected {% endif %}>Керамика</option>
@@ -144,26 +136,28 @@
                             <div class="sub-section span-group">
                                 <div class="mb-3">
                                     <label for="well1" class="form-label">Из колодца</label>
-                                    <input type="number" class="form-control" name="well_0" value="{{ diagnostic['count_of_well'] if edit_mode else '' }}" required>
+                                    <input type="text" class="form-control" name="well_0" value="{{ diagnostic['count_of_well'] if edit_mode else '' }}" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="span" class="form-label">Пролет, м</label>
-                                    <input type="number" class="form-control" name="span_0" value="{{ diagnostic['distance_between_wells'] if edit_mode else '' }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="slope" class="form-label">Уклон, °</label>
-                                    <input type="number" class="form-control" name="slope_0" value="{{ diagnostic['slope_between_wells'] if edit_mode else '' }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="flow" class="form-label">Течение</label>
-                                    <select class="form-select" name="flow_0" required>
-                                        <option value="против течения">⬆</option>
-                                        <option value="по течению">⬇</option>
-                                    </select>
+                                <div class="d-flex">
+                                    <div class="mb-3 me-2">
+                                        <label for="span" class="form-label">Пролет, м</label>
+                                        <input type="number" class="form-control" name="span_0" value="{{ diagnostic['distance_between_wells'] if edit_mode else '' }}" required>
+                                    </div>
+                                    <div class="mb-3 me-2">
+                                        <label for="slope" class="form-label">Уклон, °</label>
+                                        <input type="number" class="form-control" name="slope_0" value="{{ diagnostic['slope_between_wells'] if edit_mode else '' }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="flow" class="form-label">Течение</label>
+                                        <select class="form-select" name="flow_0" required>
+                                            <option value="против течения">⬆</option>
+                                            <option value="по течению">⬇</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="well2" class="form-label">В колодец</label>
-                                    <input type="number" class="form-control" name="well2_0" required>
+                                    <input type="text" class="form-control" name="well2_0" required>
                                 </div>
                             </div>
                         </div>
@@ -177,11 +171,15 @@
                             <div class="sub-section problem-group">
                                 <div class="mb-3">
                                     <label for="problem" class="form-label">Проблема</label>
-                                    <textarea class="form-control" name="problem_0" rows="2" value="{{ diagnostic['problems'] if edit_mode else '' }}" required></textarea>
+                                    <textarea class="form-control" name="problem_0" rows="2" value="{{ diagnostic['problems'] if edit_mode else '' }}"></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
-                                    <input type="number" class="form-control" name="problemDistance_0" value="{{ diagnostic['problems_distances'] if edit_mode else '' }}" required>
+                                    <input type="number" class="form-control" name="problemDistance_0" value="{{ diagnostic['problems_distances'] if edit_mode else '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="photos">Загрузить фотографии:</label>
+                                    <input type="file" id="photos" name="photos" multiple>
                                 </div>
                             </div>
                         </div>
@@ -191,12 +189,6 @@
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
                         <input type="hidden" id="areaField" name="area" value="{{ diagnostic['area'] if edit_mode else '' }}">
-                    </div>
-                    <div class="form-section" style="align-content: start;">
-                        <div class="mb-3">
-                            <label for="author" class="form-label">Автор</label>
-                            <input type="text" class="form-control" id="author" name="author" value="{{ diagnostic['author'] if edit_mode else '' }}" required>
-                        </div>
                     </div>
 
                     <!-- Отправка формы -->
@@ -222,27 +214,29 @@
                           newSpan.classList.add('sub-section', 'span-group');
                           newSpan.innerHTML = `
                               <div class="mb-3">
-                                  <label for="well1" class="form-label">Начальный колодец</label>
-                                  <input type="number" class="form-control" name="well_${spanIndex}" required>
+                                  <label for="well1" class="form-label">Из колодца</label>
+                                  <input type="text" class="form-control" name="well_${spanIndex}" required>
+                              </div>
+                              <div class="d-flex">
+                                <div class="mb-3 me-2">
+                                    <label for="span" class="form-label">Пролет, м</label>
+                                    <input type="number" class="form-control" name="span_${spanIndex}" required>
+                                </div>
+                                <div class="mb-3 me-2">
+                                    <label for="slope" class="form-label">Уклон, °</label>
+                                    <input type="number" class="form-control" name="slope_${spanIndex}" required>
+                                </div>
+                                <div class="mb-3 me-2">
+                                    <label for="flow" class="form-label">Течение</label>
+                                    <select class="form-select" name="flow_${spanIndex}" required>
+                                        <option value="Против течения">⬆</option>
+                                        <option value="По течению">⬇</option>
+                                    </select>
+                                </div>
                               </div>
                               <div class="mb-3">
-                                  <label for="span" class="form-label">Пролет, м</label>
-                                  <input type="number" class="form-control" name="span_${spanIndex}" required>
-                              </div>
-                              <div class="mb-3">
-                                  <label for="slope" class="form-label">Уклон, °</label>
-                                  <input type="number" class="form-control" name="slope_${spanIndex}" required>
-                              </div>
-                              <div class="mb-3">
-                                  <label for="flow" class="form-label">Течение</label>
-                                  <select class="form-select" name="flow_${spanIndex}" required>
-                                      <option value="Против течения">⬆</option>
-                                      <option value="По течению">⬇</option>
-                                  </select>
-                              </div>
-                              <div class="mb-3">
-                                  <label for="well2" class="form-label">Конечный колодец</label>
-                                  <input type="number" class="form-control" name="well2_${spanIndex}" required>
+                                  <label for="well2" class="form-label">В колодец</label>
+                                  <input type="text" class="form-control" name="well2_${spanIndex}" required>
                               </div>
                           `;
                           spanSection.appendChild(newSpan);
@@ -257,11 +251,11 @@
                           newProblem.innerHTML = `
                               <div class="mb-3">
                                   <label for="problem" class="form-label">Проблема</label>
-                                  <textarea class="form-control" name="problem_${problemIndex}" rows="2" required></textarea>
+                                  <textarea class="form-control" name="problem_${problemIndex}" rows="2"></textarea>
                               </div>
                               <div class="mb-3"> 
                                   <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
-                                  <input type="number" class="form-control" name="problemDistance_${problemIndex}" required>
+                                  <input type="number" class="form-control" name="problemDistance_${problemIndex}">
                               </div>
                           `;
                           problemSection.appendChild(newProblem);
