@@ -50,8 +50,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="area">Участок</label>
-                    <input type="text" class="form-control" id="area" name="area" value="{{ user['area'] }}">
+                    <label for="areaid">Участок</label>
+                    <select id="areaid" name="areaid" class="form-control" required>
+                        {% for area in areas %}
+                            <option value="{{ area['id'] }}" {% if edit_mode and diagnostic['areaid'] == area['id'] %} selected {% endif %}>{{ area['name'] }}.</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
             </form>

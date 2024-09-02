@@ -72,14 +72,10 @@
                   <form class="form-inline d-flex align-items-center" method="GET" action="{{ url_for('view_diagnostics') }}">
                       <div class="me-2">
                           <select id="areaFilter" name="areaFilter" class="form-select">
-                              <option value="all">Все участки</option>
-                              <option value="ct">ct</option>
-                              <option value="op">op</option>
-                              <option value="ss">ss</option>
-                              <option value="sn">sn</option>
-                              <option value="ls">ls</option>
-                              <option value="ln">ln</option>
-                              <option value="ff">ff</option>
+                            <option value="all">Все участки</option>
+                            {% for area in areas %}
+                              <option value="{{ area['id'] }}">{{ area['name'] }}.</option>
+                            {% endfor %}
                           </select>
                       </div>
                       <div>

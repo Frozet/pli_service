@@ -88,6 +88,14 @@
                             <input type="text" class="form-control" id="address" name="address" value="{{ diagnostic['address'] if edit_mode else '' }}" required>
                         </div>
                         <div>
+                            <label for="area" class="form-label">Мастер участка</label>
+                            <select class="form-select" id="areaid" name="areaid" required>
+                                {% for area in areas %}
+                                    <option value="{{ area['id'] }}" {% if edit_mode and diagnostic['areaid'] == area['id'] %} selected {% endif %}>{{ area['name'] }}.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
                             <label for="type" class="form-label">Тип трубопровода</label>
                             <select class="form-select" id="type" name="type" required>
                                 <option value="КК" {% if edit_mode and diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>
@@ -188,7 +196,6 @@
 
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
-                        <input type="hidden" id="areaField" name="area" value="{{ diagnostic['area'] if edit_mode else '' }}">
                     </div>
 
                     <!-- Отправка формы -->
@@ -229,8 +236,8 @@
                                 <div class="mb-3 me-2">
                                     <label for="flow" class="form-label">Течение</label>
                                     <select class="form-select" name="flow_${spanIndex}" required>
-                                        <option value="Против течения">⬆</option>
-                                        <option value="По течению">⬇</option>
+                                        <option value="против течения">⬆</option>
+                                        <option value="по течению">⬇</option>
                                     </select>
                                 </div>
                               </div>
@@ -274,33 +281,6 @@
             var myMap = new ymaps.Map("map", {
                 center: [{{ diagnostic['coordinates'] if edit_mode else '52.27,104.31' }}],
                 zoom: 13,
-                interactivityModel: 'default#transparent' // Устанавливаем режим взаимодействия для карты
-            });
-
-            var areas = {{ areas|tojson|safe }};
-            var polygons = [];
-
-            // Создание многоугольников для участков
-            areas.forEach(function(area) {
-                var polygon = new ymaps.GeoObject({
-                    geometry: {
-                        type: "Polygon",
-                        coordinates: [area.coordinates],
-                        fillRule: "nonZero"
-                    },
-                    properties: {
-                        // hintContent: area.name
-                    }
-                }, {
-                    fillColor: area.color + "1",
-                    strokeColor: area.color,
-                    strokeWidth: 3,
-                    opacity: 0.1,
-                    interactivityModel: 'default#transparent'
-                });
-
-                myMap.geoObjects.add(polygon);
-                polygons.push({name: area.name, polygon: polygon});
             });
 
             var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
@@ -310,27 +290,13 @@
                 // Размеры метки.
                 iconImageSize: [35, 35],
                 iconImageOffset: [-10, -10],
-                // draggable: true // Позволяет перетаскивать маркер
+                draggable: true // Позволяет перетаскивать маркер
             });
 
             myMap.geoObjects.add(placemark);
             // Обработчик события щелчка по карте
             myMap.events.add('click', function (e) {
                 var coords = e.get('coords');
-
-                // Проверка, в каком полигоне находится точка
-                var areaName = null;
-                polygons.forEach(function(area) {
-                    if (area.polygon.geometry.contains(coords)) {
-                        areaName = area.name;
-                    }
-                });
-
-                if (areaName) {
-                    document.getElementById('areaField').value = areaName;
-                } else {
-                    document.getElementById('areaField').value = 'ff';
-                }
 
                 // Перемещаем маркеры по щелчку в указанные координаты
                 placemark.geometry.setCoordinates(coords);

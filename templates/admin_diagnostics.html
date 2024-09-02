@@ -44,13 +44,9 @@
                         <div class="me-2">
                             <select id="areaFilter" name="areaFilter" class="form-select">
                                 <option value="all">Все участки</option>
-                                <option value="ct">ct</option>
-                                <option value="op">op</option>
-                                <option value="ss">ss</option>
-                                <option value="sn">sn</option>
-                                <option value="ls">ls</option>
-                                <option value="ln">ln</option>
-                                <option value="ff">ff</option>
+                                {% for area in areas %}
+                                    <option value="{{ area['id'] }}">{{ area['name'] }}.</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div>
@@ -158,7 +154,7 @@
                                 <td>{{ diagnostic['distance'] }}</td>
                                 <td>{{ diagnostic['problems'] }}</td>
                                 <td>{{ diagnostic['author'] }}</td>
-                                <td>{{ diagnostic['area'] }}</td>
+                                <td>{{ diagnostic['name'] }}.</td>
                                 <td>{{ diagnostic['timestampdata'] }}</td>
                             </tr>
                             {% endfor %}

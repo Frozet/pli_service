@@ -59,7 +59,7 @@
                     </tr>
                     <tr>
                         <th>Участок</th>
-                        <td>{% if user['area'] == 'f' %}Все участки{% else %}{{ user['area'] }}{% endif %}</td>
+                        <td>{% if user['area_name'] != 'Все участки' %}{{ user['area_name'] }}.{% else %}{{ user['area_name'] }}{% endif %}</td>
                     </tr>
                 </table>
             </div>

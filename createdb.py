@@ -12,6 +12,14 @@ conn = psycopg2.connect(
 # Создание курсора
 c = conn.cursor()
 
+# Создание таблицы Areas
+c.execute('''
+    CREATE TABLE IF NOT EXISTS areas (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255)
+    )
+''')
+
 # Создание таблицы Diagnostics
 c.execute('''
     CREATE TABLE IF NOT EXISTS diagnostics (
@@ -32,8 +40,9 @@ c.execute('''
         author VARCHAR(255),
         problems TEXT,
         problems_distances TEXT,
-        images BYTEA,
-        timestampdata TIMESTAMP
+        timestampdata TIMESTAMP,
+        areaid INTEGER REFERENCES areas (id),
+        photo_path VARCHAR(255)
     )
 ''')
 
@@ -45,7 +54,7 @@ c.execute('''
         password VARCHAR(255),
         full_name VARCHAR(255),
         role VARCHAR(255),
-        area VARCHAR(255)
+        areaid INTEGER REFERENCES areas (id)
     )
 ''')
 

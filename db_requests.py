@@ -47,23 +47,30 @@ def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # Получаем общее количество записей для вычисления количества страниц
-    if session['area'] == 'f':
+    if not session['areaid']:
         cursor.execute("SELECT COUNT(*) FROM diagnostics")
     else:
-        cursor.execute("SELECT COUNT(*) FROM diagnostics WHERE area = %s", (session['area'],))
+        cursor.execute("SELECT COUNT(*) FROM diagnostics WHERE areaid = %s", (session['areaid'],))
     total_items = cursor.fetchone()['count']
     total_pages = (total_items + per_page - 1) // per_page  # Округление вверх
     
 
-    # Формируем SQL-запрос с использованием параметра search_query
-    if session['area'] == 'f':
+    # Если админ или редактор
+    if not session['areaid']:
+        # Формируем SQL-запрос с использованием параметра search_query
         if search_query:
             if area_filter == 'all':
                 area_count = ''
             else:
-                area_count = f" AND area = '{area_filter}'"
+                area_count = f" AND areaid = '{area_filter}'"
             query = f"""
-            SELECT * FROM diagnostics 
+            SELECT diagnostics.id, diagnostics.address, diagnostics.short_title, diagnostics.diagnostic_type, 
+                diagnostics.date, diagnostics.type, diagnostics.diameter, diagnostics.material, 
+                diagnostics.flow, diagnostics.distance, diagnostics.count_of_well, 
+                diagnostics.distance_between_wells, diagnostics.slope_between_wells, diagnostics.author, 
+                diagnostics.problems, diagnostics.problems_distances, diagnostics.timestampdata, 
+                areas.name FROM diagnostics
+            INNER JOIN areas ON diagnostics.areaid = areas.id
             WHERE 
                 short_title ILIKE %s OR
                 diagnostic_type ILIKE %s OR
@@ -81,17 +88,24 @@ def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
             like_query = f"%{search_query}%"
             cursor.execute(query, (like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query, like_query))
         else:
-            if area_filter == 'all':
+            if area_filter == 'all' or not area_filter:
                 area_count = ''
             else:
-                area_count = f"WHERE area = '{area_filter}'"
+                area_count = f"WHERE areaid = '{area_filter}'"
             query = f"""
-                SELECT * FROM diagnostics
+                SELECT diagnostics.id, diagnostics.address, diagnostics.short_title, diagnostics.diagnostic_type, 
+                    diagnostics.date, diagnostics.type, diagnostics.diameter, diagnostics.material, 
+                    diagnostics.flow, diagnostics.distance, diagnostics.count_of_well, 
+                    diagnostics.distance_between_wells, diagnostics.slope_between_wells, diagnostics.author, 
+                    diagnostics.problems, diagnostics.problems_distances, diagnostics.timestampdata, 
+                    areas.name FROM diagnostics
+                INNER JOIN areas ON diagnostics.areaid = areas.id
                 {area_count}
                 ORDER BY {sort_by} {order.upper()}
                 LIMIT {per_page} OFFSET {start}
             """
             cursor.execute(query)
+    # Если пользователь
     else:
         if search_query:
             query = f"""
@@ -106,7 +120,7 @@ def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
                 distance::TEXT ILIKE %s OR
                 problems ILIKE %s OR
                 author ILIKE %s AND
-                area = '{session['area']}'
+                areaid = '{session['areaid']}'
             ORDER BY {sort_by} {order.upper()}
             LIMIT {per_page} OFFSET {start}
             """
@@ -115,7 +129,7 @@ def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
         else:
             query = f"""
                 SELECT * FROM diagnostics
-                WHERE area = '{session['area']}'
+                WHERE areaid = '{session['areaid']}'
                 ORDER BY {sort_by} {order.upper()}
                 LIMIT {per_page} OFFSET {start}
             """
@@ -140,11 +154,11 @@ def get_diagnostics_coordinates():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
-    if session['area'] == 'f':
+    if not session['areaid']:
         cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id DESC LIMIT 25') # Лимит 25, потому что при большом количестве сильно грузит страницу
     else:
         # Для пользователей отдельных участков будут показаны диагностики только с их участка
-        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE area = '{session['area']}' ORDER BY id ASC LIMIT 25"""
+        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE areaid = '{session['areaid']}' ORDER BY id ASC LIMIT 25"""
         cur.execute(query)
     diagnostics = cur.fetchall()
     conn.close()
@@ -154,7 +168,14 @@ def get_diagnostics_coordinates():
 def get_users():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('SELECT id, username, full_name, role, area FROM users')
+    # Получение поля area_name по внешнему ключу и указание стандартного значения
+    cur.execute('''
+                SELECT users.id, users.username, users.full_name, users.role, 
+                    COALESCE(areas.name, 'Все участки') AS area_name
+                FROM users
+                LEFT JOIN areas ON users.areaid = areas.id
+                ORDER BY id ASC
+    ''')
     users = cur.fetchall()
     conn.close()
     return users
@@ -163,18 +184,25 @@ def get_users():
 def get_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('SELECT id, username, full_name, role, area FROM users WHERE id = %s', (user_id,))
+    cur.execute('''
+                SELECT users.id, users.username, users.full_name, users.role, 
+                    COALESCE(areas.name, 'Все участки') AS area_name
+                FROM users
+                LEFT JOIN areas ON users.areaid = areas.id
+                WHERE users.id = %s
+    ''', (user_id,))
     user = cur.fetchone()
     conn.close()
     return user
+
  # Редактирование данных пользователя
-def update_user(user_id, username, full_name, role, area):
+def update_user(user_id, username, full_name, role, areaid=None):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("""
-        UPDATE users SET username = %s, full_name = %s, role = %s, area = %s
+        UPDATE users SET username = %s, full_name = %s, role = %s, areaid = %s
         WHERE id = %s
-    """, (username, full_name, role, area, user_id))
+    """, (username, full_name, role, areaid, user_id))
     
     conn.commit()
     conn.close()
@@ -184,10 +212,28 @@ def update_user(user_id, username, full_name, role, area):
 def delete_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    cur.execute("DELETE FROM users WHERE id = %s LIMIT 1", (user_id,))
     conn.commit()
     conn.close()
     return None
+
+# Получение всех участков
+def get_areas():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM areas')
+    areas = cur.fetchall()
+    conn.close()
+    return areas
+
+# Получение участка по id
+def get_area(area_id):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('SELECT * FROM areas WHERE id = %s', (area_id,))
+    area = cur.fetchone()
+    conn.close()
+    return area
 
 # Форматирование данных для страницы с деталями инспекции
 def format_diagnostic_data(diagnostic):
@@ -223,7 +269,7 @@ def data_from_add_to_db(request):
     diagnostic_material = request.form['material']
     diagnostic_distance = request.form['distance']
     diagnostic_author = session['full_name']
-    diagnostic_area = request.form['area']
+    diagnostic_areaid = request.form['areaid']
     diagnostic_timestampdata = datetime.now()
     
     # Обработка колодцев, пролета и других данных
@@ -264,9 +310,9 @@ def data_from_add_to_db(request):
 
     
 
-    return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata
+    return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata
 
-def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, saved_files=''):
+def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, saved_files=''):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -275,7 +321,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     INSERT INTO diagnostics (
         short_title, address, diagnostic_type, date, coordinates, type, diameter, material, distance, 
         count_of_well, distance_between_wells, slope_between_wells, flow, 
-        author, problems, problems_distances, timestampdata, area, photo_path
+        author, problems, problems_distances, timestampdata, areaid, photo_path
     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
@@ -286,7 +332,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
         diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, 
-        diagnostic_area, saved_files
+        diagnostic_areaid, saved_files
     ))
 
     # Фиксация изменений и закрытие соединения
@@ -295,19 +341,19 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     
     return None
 
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_area):
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid):
     # Update the diagnostic in the database
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s, area = %s
+        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s, areaid = %s
         WHERE id = %s
     """, (
         diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, 
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, 
         diagnostic_id
         ))
     

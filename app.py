@@ -9,7 +9,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -60,7 +60,7 @@ def user_login():
             session['username'] = user['username']
             session['role'] = user['role']
             session['full_name'] = user['full_name']
-            session['area'] = user['area']
+            session['areaid'] = user['areaid']
             # и делаем переадресацию пользователя на главную страницу
             return redirect(url_for('index'))
 
@@ -123,7 +123,7 @@ def admin_diagnostics():
         return redirect(url_for('user_login'))
     
     search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
-    area_filter = request.args.get('areaFilter', 'all')
+    area_filter = request.args.get('areaFilter', '')
     sort_by = request.args.get('sort_by', 'date')  # Сортировка по умолчанию - по дате
     order = request.args.get('order', 'asc')  # Порядок сортировки по умолчанию - возрастание
     page = int(request.args.get('page', 1))  # Текущая страница, по умолчанию - 1
@@ -133,7 +133,8 @@ def admin_diagnostics():
     diagnostics, total_pages = get_diagnostics(search_query, area_filter, sort_by, order, per_page, start)
 
     if session['role'] == 'Admin':
-        return render_template('admin_diagnostics.html', diagnostics=diagnostics, sort_by=sort_by, order=order,
+        areas = get_areas()
+        return render_template('admin_diagnostics.html', areas=areas, diagnostics=diagnostics, sort_by=sort_by, order=order,
                            page=page, total_pages=total_pages)
     else:
         return render_template('user_panel.html')
@@ -175,12 +176,15 @@ def admin_add_user():
             password = request.form['password']
             full_name = request.form['full_name']
             role = request.form['role']
-            area = request.form['area']
-            create_user(username, password, full_name, role, area)
+            areaid = request.form['areaid']
+            if role == 'User':
+                create_user(username, password, full_name, role)
+            else:
+                create_user(username, password, full_name, role, areaid)
 
             return redirect(url_for('admin_users'))
-        
-        return render_template('admin_add_user.html')
+        areas=get_areas()
+        return render_template('admin_add_user.html', areas=areas)
     else:
         return render_template('user_panel.html')
 
@@ -199,13 +203,15 @@ def admin_edit_user_form(user_id):
             username = request.form['username']
             full_name = request.form['full_name']
             role = request.form['role']
-            area = request.form['area']
-
-            update_user(user_id, username, full_name, role, area)
+            areaid = request.form['areaid']
+            if role == 'user':
+                update_user(user_id, username, full_name, role)
+            else:
+                update_user(user_id, username, full_name, role, areaid)
 
             return redirect(url_for('admin_edit_user', user_id=user_id))
-        
-        return render_template('admin_edit_user_form.html', user=user)
+        areas=get_areas()
+        return render_template('admin_edit_user_form.html', user=user, areas=areas)
     else:
         return render_template('user_panel.html')
 
@@ -234,8 +240,7 @@ def add_diagnostic(diagnostic_id):
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
-    with open('static/areas.json', 'r', encoding='utf-8') as f:
-        areas = json.load(f)
+    areas = get_areas()
     if diagnostic_id:
         edit_mode = True
         diagnostic = get_diagnostic_detail(diagnostic_id)
@@ -288,6 +293,7 @@ def view_diagnostics():
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
+    areas = get_areas()
     search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
     area_filter = request.args.get('areaFilter', 'all')
     sort_by = request.args.get('sort_by', 'date')  # Сортировка по умолчанию - по дате
@@ -301,7 +307,7 @@ def view_diagnostics():
 
     diagnostics, total_pages = get_diagnostics(search_query, area_filter, sort_by, order, per_page, start)
 
-    return render_template('view_page.html', diagnostics=diagnostics, sort_by=sort_by, order=order,
+    return render_template('view_page.html', areas=areas, diagnostics=diagnostics, sort_by=sort_by, order=order,
                            page=page, total_pages=total_pages)
 
 @app.route('/diagnostic_page/<int:diagnostic_id>')
@@ -319,12 +325,13 @@ def diagnostic_page(diagnostic_id):
 def generate_pdf(diagnostic_id):
     # Загрузите данные о диагностике по идентификатору
     diagnostic = get_diagnostic_detail(diagnostic_id)
+    area = get_area(diagnostic['areaid'])
     current_date = datetime.now().strftime("%d.%m.%Y")  # Форматирование даты
     problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
     plot_buf = generate_diagnostic_plot(diagnostic)
 
     # Рендеринг HTML-шаблона для PDF
-    rendered = render_template('diagnostic_pdf.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'), current_date=current_date)
+    rendered = render_template('diagnostic_pdf.html', diagnostic=diagnostic, area=area, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'), current_date=current_date)
 
     # Генерация PDF из рендеренного HTML
     pdf = pdfkit.from_string(rendered, False, configuration=config)
@@ -339,7 +346,13 @@ def generate_pdf(diagnostic_id):
 
 @app.route('/delete/<int:diagnostic_id>')
 def delete_diagnostic(diagnostic_id):
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    if session['role'] == 'Viewer':
+        return redirect(url_for('index'))
     delete_func(diagnostic_id)
+    if session['role'] == 'Admin':
+        return redirect(url_for('admin_diagnostics'))
     return redirect(url_for('view_diagnostics'))
 
 @app.route('/map')

@@ -1,7 +1,7 @@
 import psycopg2
 import hashlib
 
-def create_user(username, password, full_name, role, area):
+def create_user(username, password, full_name, role, areaid=None):
     # Хеширование пароля
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
 
@@ -17,12 +17,12 @@ def create_user(username, password, full_name, role, area):
 
     # Добавление нового пользователя
     c.execute(
-        'INSERT INTO users (username, password, full_name, role, area) VALUES (%s, %s, %s, %s, %s)', 
-        (username, hashed_password, full_name, role, area)
+        'INSERT INTO users (username, password, full_name, role, areaid) VALUES (%s, %s, %s, %s, %s)', 
+        (username, hashed_password, full_name, role, areaid)
     )
     # Сохранение изменений и закрытие соединения с базой данных
     conn.commit()
     conn.close()
 
 # Впишите нужные логин, пароль, полное имя, роль(Admin, User или Viewer) и тэг участка
-create_user('testuser', 'testuser', 'Тестов Тест Тестович', 'Viewer', 'ct')
+# create_user('testuser', 'testuser', 'Тестов Тест Тестович', 'Viewer', '1')
