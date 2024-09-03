@@ -9,7 +9,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -221,6 +221,71 @@ def admin_delete_user(user_id):
     if session['role'] == 'Admin':
         delete_user(user_id)
     return redirect(url_for('admin_users'))
+
+# Страница админ панели - таблица участков    
+@app.route('/admin_areas')
+def admin_areas():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        areas = get_areas()
+        return render_template('admin_areas.html', areas=areas)
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - окно участка    
+@app.route('/admin_edit_area/<int:area_id>')
+def admin_edit_area(area_id):
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        area = get_area(area_id)
+        return render_template('admin_edit_area.html', area=area)
+    else:
+        return render_template('user_panel.html')
+    
+# Страница админ панели - добавление участка
+@app.route('/admin_add_area', methods=['GET', 'POST'])
+def admin_add_area():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    if session['role'] == 'Admin':
+        if request.method == 'POST':
+            name = request.form['name']
+            add_area(name)
+            return redirect(url_for('admin_areas'))
+        return render_template('admin_add_area.html')
+    else:
+        return render_template('user_panel.html')
+    
+# Страница админ панели - изменение участка   
+@app.route('/admin_edit_area_form/<int:area_id>', methods=['GET', 'POST'])
+def admin_edit_area_form(area_id):
+    # делаем доп проверку если сессия авторизации была создана
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    if session['role'] == 'Admin':
+        area = get_area(area_id)
+        if request.method == 'POST':
+            # Обновить данные пользователя на основе введенных данных
+            name = request.form['name']
+            update_area(area_id, name)
+
+            return redirect(url_for('admin_edit_area', area_id=area_id))
+        return render_template('admin_edit_area_form.html', area=area)
+    else:
+        return render_template('user_panel.html')
+
+# Страница админ панели - удаление участка
+@app.route('/admin_delete_area/<int:area_id>')
+def admin_delete_area(area_id):
+    if session['role'] == 'Admin':
+        delete_area(area_id)
+    return redirect(url_for('admin_areas'))
 
 # Страница аккаунта редактора или пользователя
 @app.route('/user_panel.html')

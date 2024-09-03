@@ -34,33 +34,13 @@
         <!-- Main Content -->
         <div class="content">
             {% block content %}
-            <form method="POST" action="{{ url_for('admin_edit_user_form', user_id=user['id']) }}">
+            <form method="POST" action="{{ url_for('admin_edit_area_form', area_id=area['id']) }}">
                 <div class="form-group">
-                    <label for="username">Логин</label>
-                    <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}">
-                </div>
-                <div class="form-group">
-                    <label for="full_name">Полное имя</label>
-                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user['full_name'] }}">
-                </div>
-                <div class="form-group">
-                    <label for="role">Роль</label>
-                    <select class="form-control" id="role" name="role">
-                        <option value="User" {% if user['role'] == 'User' %}selected{% endif %}>Редактор</option>
-                        <option value="Viewer" {% if user['role'] == 'Viewer' %}selected{% endif %}>Пользователь</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="areaid">Участок (только для пользователя)</label>
-                    <select id="areaid" name="areaid" class="form-control" required>
-                        {% for area in areas %}
-                            <option value="{{ area['id'] }}" {% if user['areaid'] == area['id'] %} selected {% endif %}>{{ area['name'] }}.</option>
-                        {% endfor %}
-                    </select>
+                    <label for="name">Мастер участка (писать без точек)</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ area['name'] }}">
                 </div>
                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
             </form>
-            
             {% endblock %}
         </div>
     </div>

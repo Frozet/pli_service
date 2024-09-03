@@ -96,7 +96,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th></th>
+                        
                         <th><a href="{{ url_for('view_diagnostics', sort_by='short_title', order='asc' if sort_by != 'short_title' or order == 'desc' else 'desc', page=page) }}">
                           Название
                           {% if sort_by == 'short_title' %}
@@ -167,10 +167,7 @@
                 <tbody>
                     {% for diagnostic in diagnostics %}
                     <tr>
-                        <td><a href="{{ url_for('diagnostic_page', diagnostic_id=diagnostic['id']) }}">
-                            <button class="btn btn-primary">Просмотр</button>
-                          </a></td>
-                        <td>{{ diagnostic['short_title'] }}</td>
+                        <td><a href="{{ url_for('diagnostic_page', diagnostic_id=diagnostic['id']) }}">{{ diagnostic['short_title'] }}</a></td>
                         <td>{{ diagnostic['date'] }}</td>
                         <td>{{ diagnostic['diagnostic_type'] }}</td>
                         <td>{{ diagnostic['type'] }}</td>

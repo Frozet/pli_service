@@ -155,10 +155,10 @@ def get_diagnostics_coordinates():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
     if not session['areaid']:
-        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id DESC LIMIT 25') # Лимит 25, потому что при большом количестве сильно грузит страницу
+        cur.execute('SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics ORDER BY id DESC LIMIT 30') # Лимит 30, потому что при большом количестве сильно грузит страницу
     else:
         # Для пользователей отдельных участков будут показаны диагностики только с их участка
-        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE areaid = '{session['areaid']}' ORDER BY id ASC LIMIT 25"""
+        query = f"""SELECT id, short_title, diagnostic_type, coordinates FROM diagnostics WHERE areaid = '{session['areaid']}' ORDER BY id ASC LIMIT 30"""
         cur.execute(query)
     diagnostics = cur.fetchall()
     conn.close()
@@ -195,7 +195,7 @@ def get_user(user_id):
     conn.close()
     return user
 
- # Редактирование данных пользователя
+# Редактирование данных пользователя
 def update_user(user_id, username, full_name, role, areaid=None):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -212,7 +212,7 @@ def update_user(user_id, username, full_name, role, areaid=None):
 def delete_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("DELETE FROM users WHERE id = %s LIMIT 1", (user_id,))
+    cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
     conn.commit()
     conn.close()
     return None
@@ -221,7 +221,7 @@ def delete_user(user_id):
 def get_areas():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('SELECT * FROM areas')
+    cur.execute('SELECT * FROM areas ORDER BY id ASC')
     areas = cur.fetchall()
     conn.close()
     return areas
@@ -234,6 +234,37 @@ def get_area(area_id):
     area = cur.fetchone()
     conn.close()
     return area
+
+# Добавление участка
+def add_area(name):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute('INSERT INTO areas (name) VALUES (%s)', (name,))
+    conn.commit()
+    conn.close()
+    return None
+
+# Редактирование участка
+def update_area(area_id, name):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        UPDATE areas SET name = %s
+        WHERE id = %s
+    """, (name, area_id))
+    
+    conn.commit()
+    conn.close()
+    return None
+
+# Удаление участка
+def delete_area(area_id):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("DELETE FROM areas WHERE id = %s", (area_id,))
+    conn.commit()
+    conn.close()
+    return None
 
 # Форматирование данных для страницы с деталями инспекции
 def format_diagnostic_data(diagnostic):
