@@ -9,11 +9,11 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'static/uploads/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
@@ -295,7 +295,7 @@ def user_panel():
 
     return render_template('user_panel.html')
 
-# Добавление диагностики
+# Добавление или изменение диагностики
 @app.route('/add_diagnostic/<int:diagnostic_id>', methods=['GET', 'POST'])
 def add_diagnostic(diagnostic_id):
     # Добавлять диагностики возможно только редактору или админу
@@ -309,20 +309,34 @@ def add_diagnostic(diagnostic_id):
     if diagnostic_id:
         edit_mode = True
         diagnostic = get_diagnostic_detail(diagnostic_id)
+        photo_count = len(diagnostic['photo_path'].split(','))
+        photo_path = diagnostic['photo_path'].split(',')
         user_name = session['username']
         yandex_api_key = get_yandex_api_key()
-        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, diagnostic=diagnostic, areas=areas, edit_mode=edit_mode)
+        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, diagnostic=diagnostic, photo_count=photo_count, photo_path=photo_path, areas=areas, edit_mode=edit_mode)
     else:
         edit_mode = False
         user_name = session['username']
         yandex_api_key = get_yandex_api_key()
-        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=0, areas=areas, edit_mode=edit_mode)
+        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=0, photo_count=0, photo_path=[], areas=areas, edit_mode=edit_mode)
 
+# Страница успешного изменения диагностики
 @app.route('/edit_form/<int:diagnostic_id>', methods=['GET', 'POST'])
 def edit_diagnostic(diagnostic_id):
     if request.method == 'POST':
+        files = request.files.getlist('photos')
+        print(files)
+        saved_files = []
+        for file in files:
+            print(file)
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                saved_files.append(file_path[7:])
+
         diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata = data_from_add_to_db(request)
-        edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata)
+        edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(saved_files))
 
         # Redirect to the diagnostic details page
     return render_template('edit_form.html')
@@ -333,7 +347,6 @@ def submit_diagnostic():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
         # Обработка загруженных файлов
-        # Эта часть пока не работает________________
         print(request.files)
         files = request.files.getlist('photos')
         print(files)
@@ -345,8 +358,7 @@ def submit_diagnostic():
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 saved_files.append(file_path)
-                print(saved_files)
-        # __________________________________________
+                print(saved_files[7:])
 
         diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata = data_from_add_to_db(request)
         insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(saved_files))
@@ -381,10 +393,10 @@ def diagnostic_page(diagnostic_id):
         return redirect(url_for('user_login'))
     
     diagnostic = get_diagnostic_detail(diagnostic_id)
-    problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
+    problem_details, format_date, wells_details, photos_paths = format_diagnostic_data(diagnostic)
     plot_buf = generate_diagnostic_plot(diagnostic)
     
-    return render_template('diagnostic_page.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'))
+    return render_template('diagnostic_page.html', diagnostic=diagnostic, problem_details=problem_details, format_date=format_date, wells_details=wells_details, photos_paths=photos_paths, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'))
 
 @app.route('/diagnostic/<int:diagnostic_id>/generate_pdf')
 def generate_pdf(diagnostic_id):
@@ -392,11 +404,15 @@ def generate_pdf(diagnostic_id):
     diagnostic = get_diagnostic_detail(diagnostic_id)
     area = get_area(diagnostic['areaid'])
     current_date = datetime.now().strftime("%d.%m.%Y")  # Форматирование даты
-    problem_details, format_date, wells_details = format_diagnostic_data(diagnostic)
+    problem_details, format_date, wells_details, photos_paths = format_diagnostic_data(diagnostic)
     plot_buf = generate_diagnostic_plot(diagnostic)
-
+    if photos_paths:
+        prepared_photos_paths = [url_for('static', filename=photo_path, _external=True) for photo_path in photos_paths]
+        print(prepared_photos_paths)
+    else:
+        prepared_photos_paths = []
     # Рендеринг HTML-шаблона для PDF
-    rendered = render_template('diagnostic_pdf.html', diagnostic=diagnostic, area=area, problem_details=problem_details, format_date=format_date, wells_details=wells_details, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'), current_date=current_date)
+    rendered = render_template('diagnostic_pdf.html', diagnostic=diagnostic, area=area, problem_details=problem_details, format_date=format_date, wells_details=wells_details, photos_paths=prepared_photos_paths, plot_image=base64.b64encode(plot_buf.getvalue()).decode('utf-8'), current_date=current_date)
 
     # Генерация PDF из рендеренного HTML
     pdf = pdfkit.from_string(rendered, False, configuration=config)

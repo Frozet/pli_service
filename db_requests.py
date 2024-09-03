@@ -163,6 +163,15 @@ def get_diagnostics_coordinates():
     diagnostics = cur.fetchall()
     conn.close()
     return diagnostics
+# Получение путей к фотографиям диагностики
+def get_diagnostic_photo_path(diagnostic_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT photo_path FROM diagnostics WHERE id = %s", (diagnostic_id,))
+    raw_photo_path = cursor.fetchone()
+    conn.close()
+    photo_path = raw_photo_path['photo_path']
+    return photo_path
 
 # Получение данных всех пользователей
 def get_users():
@@ -286,8 +295,12 @@ def format_diagnostic_data(diagnostic):
     distances_between_wells = diagnostic['distance_between_wells'].split(',')
     slope_between_wells = diagnostic['slope_between_wells'].split(',')
     wells_details = list(zip(wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds)) # Создание списка кортежей
+    if diagnostic['photo_path']:
+        photo_paths = diagnostic['photo_path'].split(',')
+    else:
+        photo_paths = []
 
-    return problem_details, format_date, wells_details
+    return problem_details, format_date, wells_details, photo_paths
 
 def data_from_add_to_db(request):
     diagnostic_name = request.form['name']
@@ -372,20 +385,30 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     
     return None
 
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid):
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid, diagnostic_photo_path=''):
+    old_photo_path = get_diagnostic_photo_path(diagnostic_id)
     # Update the diagnostic in the database
     conn = get_db_connection()
     cursor = conn.cursor()
+    # Добавляем новые фотографии, если они появились
+    if old_photo_path:
+        new_photo_path = old_photo_path + ',' + diagnostic_photo_path
+    else:
+        new_photo_path = old_photo_path + diagnostic_photo_path
     cursor.execute("""
-        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, distance = %s, count_of_well = %s, distance_between_wells = %s, slope_between_wells = %s, flow = %s, author = %s, problems = %s, problems_distances = %s, timestampdata = %s, areaid = %s
+        UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, 
+                   date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, 
+                   distance = %s, count_of_well = %s, distance_between_wells = %s,
+                   slope_between_wells = %s, flow = %s, author = %s, problems = %s, 
+                   problems_distances = %s, timestampdata = %s, areaid = %s, photo_path = %s
         WHERE id = %s
     """, (
         diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, 
-        diagnostic_id
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, new_photo_path, 
+        diagnostic_id 
         ))
     
     conn.commit()

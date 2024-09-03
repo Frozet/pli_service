@@ -2,7 +2,6 @@
 <html lang="en" data-bs-theme="auto">
   <head>
     <script src="../assets/js/color-modes.js"></script>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
@@ -46,13 +45,17 @@
         display: flex;
         justify-content: space-between;
       }
+      .img-size {
+        width: 65%;
+        height: auto; /* Сохраняет пропорции изображения */
+        margin-bottom: 10px; /* Добавляет отступ между изображениями, если их несколько */
+      }
     </style>
 
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='headers.css') }}" rel="stylesheet">
   </head>
   <body>
-
     <main>
       <div class="container">
         <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    
@@ -79,7 +82,6 @@
             <a href="{{ url_for('view_diagnostics') }}">
                 <button class="btn btn-primary">Назад к списку</button>
             </a>
-
             <!-- Right-aligned buttons -->
               <div>
                 <a href="{{ url_for('generate_pdf', diagnostic_id=diagnostic['id']) }}">
@@ -93,8 +95,6 @@
                 {% endif %}
             </div>
         </div>
-
-
         <div class="main-content row">
           <!-- Левая часть: Детали диагностики -->
           <div class="details">
@@ -126,8 +126,12 @@
               </li>
               <li><strong>Автор:</strong> {{ diagnostic['author'] }}</li>
             </ul>
+            {% if photos_paths %}
+              {% for photo_path in photos_paths %}
+                <img src="{{ url_for('static', filename=photo_path) }}" alt="Фото диагностики" class="img-size">
+              {% endfor %}
+            {% endif %}
           </div>
-
           <!-- Правая часть: График диагностики -->
           <div class="graph">
             <h2>График</h2>
@@ -144,9 +148,7 @@
             }
         }
       </script>
-
     </main>
-
     <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
   </body>
 </html>

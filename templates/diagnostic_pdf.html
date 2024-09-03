@@ -64,6 +64,22 @@
             text-align: right;
             color: #333;
         }
+        .photo-gallery {
+            border: 1px solid black; /* Черная тонкая рамка */
+            padding: 10px; /* Отступ внутри рамки */
+            margin-bottom: 20px; /* Отступ снизу */
+        }
+        .photo-gallery img {
+            width: 50%; /* Изображения будут занимать 50% от их исходного размера */
+            height: auto;
+            display: block;
+            margin: 10px auto; /* Центрирование изображений и отступ между ними */
+        }
+        .img-size {
+            width: 65%;
+            height: auto;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -145,6 +161,15 @@
         <h2>График</h2>
         <img src="data:image/png;base64,{{ plot_image }}" alt="График диагностики">
     </div>
+    <!-- Блок для фотографий -->
+    {% if photos_paths %}
+        <div class="photo-gallery">
+            <h2>Фотографии</h2>
+            {% for photo_path in photos_paths %}
+                <img src="{{ photo_path }}" alt="Фото диагностики" class="img-size" loading="lazy">
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <!-- Дата обращения -->
     <div class="footer">

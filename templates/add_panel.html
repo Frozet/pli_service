@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="auto">
+<html lang="ru" data-bs-theme="auto">
   <head><script src="../assets/js/color-modes.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
     <meta charset="utf-8">
@@ -37,6 +37,11 @@
       #map {
         width: 100%;
         height: 600px;
+      }
+      .img-size {
+        width: 30%;
+        height: auto; /* Сохраняет пропорции изображения */
+        margin-bottom: 10px; /* Добавляет отступ между изображениями, если их несколько */
       }
     </style>
 
@@ -185,15 +190,23 @@
                                     <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
                                     <input type="number" class="form-control" name="problemDistance_0" value="{{ diagnostic['problems_distances'] if edit_mode else '' }}">
                                 </div>
-                                <div class="mb-3">
-                                    <label for="photos">Загрузить фотографии:</label>
-                                    <input type="file" id="photos" name="photos" multiple>
-                                </div>
                             </div>
                         </div>
+                        
                         <button type="button" class="btn btn-secondary" onclick="addProblemSection()">Добавить проблему</button>
                     </div>
-
+                    <div class="mb-3">
+                        {% if edit_mode %}Загружено {{photo_count}} фотографий{% endif %}
+                        {% if photo_path %}
+                            {% for photo in photo_path %}
+                                <div>
+                                    <img src="{{ url_for('static', filename=photo) }}" alt="Фото диагностики" class="img-size">
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <label for="photos">Загрузить фотографии (по одной на проблему):</label>
+                        <input type="file" id="photos" name="photos" multiple>
+                    </div>
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
                     </div>
