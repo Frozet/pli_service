@@ -385,32 +385,26 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     
     return None
 
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid, diagnostic_photo_path=''):
-    old_photo_path = get_diagnostic_photo_path(diagnostic_id)
-    # Update the diagnostic in the database
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, diagnostic_photo_path=''):
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Добавляем новые фотографии, если они появились
-    if old_photo_path:
-        new_photo_path = old_photo_path + ',' + diagnostic_photo_path
-    else:
-        new_photo_path = old_photo_path + diagnostic_photo_path
+
     cursor.execute("""
         UPDATE diagnostics SET address = %s, short_title = %s, diagnostic_type = %s, 
-                   date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, 
-                   distance = %s, count_of_well = %s, distance_between_wells = %s,
-                   slope_between_wells = %s, flow = %s, author = %s, problems = %s, 
-                   problems_distances = %s, timestampdata = %s, areaid = %s, photo_path = %s
+               date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, 
+               distance = %s, count_of_well = %s, distance_between_wells = %s,
+               slope_between_wells = %s, flow = %s, author = %s, problems = %s, 
+               problems_distances = %s, timestampdata = %s, areaid = %s, photo_path = %s
         WHERE id = %s
     """, (
         diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, new_photo_path, 
-        diagnostic_id 
-        ))
-    
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid, diagnostic_photo_path, 
+        diagnostic_id
+    ))
+
     conn.commit()
     conn.close()
     

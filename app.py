@@ -309,10 +309,17 @@ def add_diagnostic(diagnostic_id):
     if diagnostic_id:
         edit_mode = True
         diagnostic = get_diagnostic_detail(diagnostic_id)
-        photo_count = len(diagnostic['photo_path'].split(','))
-        photo_path = diagnostic['photo_path'].split(',')
+        
+        if diagnostic['photo_path']:
+            photo_count = len(diagnostic['photo_path'].split(','))
+            photo_path = diagnostic['photo_path'].split(',')
+        else:
+            photo_count = 0
+            photo_path = []
         user_name = session['username']
         yandex_api_key = get_yandex_api_key()
+        print(photo_path)
+        print(True if photo_path else False)
         return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, diagnostic=diagnostic, photo_count=photo_count, photo_path=photo_path, areas=areas, edit_mode=edit_mode)
     else:
         edit_mode = False
@@ -324,19 +331,38 @@ def add_diagnostic(diagnostic_id):
 @app.route('/edit_form/<int:diagnostic_id>', methods=['GET', 'POST'])
 def edit_diagnostic(diagnostic_id):
     if request.method == 'POST':
+        # Получаем список фотографий, которые пользователь удалил
+        photos_to_delete = request.form.get('photos_to_delete', '').split(',')
+
+        # Удаляем файлы с диска и обновляем список фотографий
+        current_photos = get_diagnostic_photo_path(diagnostic_id).split(',')
+        updated_photos = [photo for photo in current_photos if photo not in photos_to_delete]
+
+        # Удаление файлов с сервера
+        for photo in photos_to_delete:
+            if photo:  # Убедимся, что не пытаемся удалить пустую строку
+                try:
+                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], photo[8:]))
+                except OSError:
+                    pass  # Файл может не существовать, обрабатываем этот случай
+
         files = request.files.getlist('photos')
-        print(files)
         saved_files = []
         for file in files:
-            print(file)
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 saved_files.append(file_path[7:])
 
+        # Добавляем новые фотографии к оставшимся
+        updated_photos.extend(saved_files)
+
+        # Получаем данные из формы для обновления записи
         diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata = data_from_add_to_db(request)
-        edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(saved_files))
+
+        # Обновляем запись в БД
+        edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(updated_photos))
 
         # Redirect to the diagnostic details page
     return render_template('edit_form.html')
@@ -347,18 +373,18 @@ def submit_diagnostic():
     error = None  # обнуляем переменную ошибок
     if request.method == 'POST':
         # Обработка загруженных файлов
-        print(request.files)
+
         files = request.files.getlist('photos')
-        print(files)
+
         saved_files = []
         for file in files:
-            print(file)
+
             if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+                filename = secure_filename('diagnostic' + file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
-                saved_files.append(file_path)
-                print(saved_files[7:])
+                saved_files.append(file_path[7:])
+
 
         diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata = data_from_add_to_db(request)
         insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_area, diagnostic_timestampdata, ','.join(saved_files))
@@ -374,7 +400,7 @@ def view_diagnostics():
     search_query = request.args.get('search_query', '')  # Получаем параметр search_query из строки запроса
     area_filter = request.args.get('areaFilter', 'all')
     sort_by = request.args.get('sort_by', 'date')  # Сортировка по умолчанию - по дате
-    order = request.args.get('order', 'asc')  # Порядок сортировки по умолчанию - возрастание
+    order = request.args.get('order', 'desc')  # Порядок сортировки по умолчанию - возрастание
     page = int(request.args.get('page', 1))  # Текущая страница, по умолчанию - 1
     per_page = 50  # Количество записей на странице
 

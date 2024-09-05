@@ -196,17 +196,21 @@
                         <button type="button" class="btn btn-secondary" onclick="addProblemSection()">Добавить проблему</button>
                     </div>
                     <div class="mb-3">
-                        {% if edit_mode %}Загружено {{photo_count}} фотографий{% endif %}
+                        {% if edit_mode %}
+                            Загружено {{ photo_count }} фотографий<br>
+                        {% endif %}
                         {% if photo_path %}
                             {% for photo in photo_path %}
-                                <div>
+                                <div class="photo-item">
                                     <img src="{{ url_for('static', filename=photo) }}" alt="Фото диагностики" class="img-size">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removePhoto('{{ photo }}')">Удалить</button>
                                 </div>
                             {% endfor %}
                         {% endif %}
                         <label for="photos">Загрузить фотографии (по одной на проблему):</label>
                         <input type="file" id="photos" name="photos" multiple>
                     </div>
+                    
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
                     </div>
@@ -281,6 +285,23 @@
                           problemSection.appendChild(newProblem);
                           problemIndex++;
               }
+            
+            var photosToDelete = [];
+            function removePhoto(photo) {
+                // Добавляем фото в список для удаления
+                photosToDelete.push(photo);
+                // Убираем фотографию с экрана
+                event.target.closest('.photo-item').remove();
+            }
+
+            // Передаем список фотографий для удаления в скрытое поле
+            document.querySelector('form').addEventListener('submit', function() {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'photos_to_delete';
+                input.value = photosToDelete.join(',');
+                this.appendChild(input);
+            });
           </script>
 
     </main>
