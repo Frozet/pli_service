@@ -137,7 +137,7 @@
         <p>
             {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
                 {% if not loop.first %}, {% endif %}
-                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>
+                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до <span class="highlight"> {{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>
             {% endfor %}
         </p>
     </div>

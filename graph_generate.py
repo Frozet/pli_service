@@ -5,7 +5,7 @@ import io
 
 def generate_diagnostic_plot(diagnostic):
     distances = list(map(float, diagnostic['distance_between_wells'].split(',')))
-    slopes = list(map(float, diagnostic['slope_between_wells'].split(',')))
+    slopes = list(map(str, diagnostic['slope_between_wells'].split(',')))
     wells = diagnostic['count_of_well'].split(',')
     if diagnostic['problems_distances']:
         problems_distances = list(map(float, diagnostic['problems_distances'].split(',')))
@@ -18,24 +18,32 @@ def generate_diagnostic_plot(diagnostic):
 
     # Отрисовка линии пролета
     for i, distance in enumerate(distances):
-        color = 'green' if (slopes[i] < 0 and flow[i] == 'по течению') or (slopes[i] > 0 and flow[i] == 'против течения') else 'red'
+        match slopes[i]:
+            case 'отличный':
+                color = '#009900'
+            case 'в норме':
+                color = '#003399'
+            case 'в горизонте':
+                color = '#FFD700'
+            case 'в контруклоне':
+                color = '#FF0033'
         ax.plot([0, 0], [current_distance, current_distance + distance], color=color, lw=4)
         current_distance += distance
 
     # Отрисовка колодцев поверх линии
     current_distance = 0
     for i, distance in enumerate(distances):
-        ax.scatter([0], [current_distance], color='blue', s=120, zorder=3)
+        ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
         ax.text(0.1, current_distance, f'КК {wells[i]}', va='center', fontsize=10, zorder=4)
         current_distance += distance
 
-    ax.scatter([0], [current_distance], color='blue', s=120, zorder=3)
+    ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
     ax.text(0.1, current_distance, f'КК {wells[-1]}', va='center', fontsize=10, zorder=4)
 
     # Отрисовка проблем поверх линии
     if diagnostic['problems_distances']:
         for i, problem_distance in enumerate(problems_distances):
-            ax.scatter([0], [problem_distance], color='orange', s=120, marker='s', zorder=3)
+            ax.scatter([0], [problem_distance], color='#FF9900', s=120, marker='s', zorder=3)
 
     # Настройка шкалы расстояний
     ax.set_xlim([-1, 1])

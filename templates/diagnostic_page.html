@@ -111,7 +111,7 @@
               <li><strong>Диагностика проведена:</strong>
                 {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
                   {% if not loop.first %}, {% endif %}
-                  из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }} с уклоном {{ slope_between_wells }}° на расстояние {{ distances_between_wells }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
+                  из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
                 {% endfor %}
               </li>
               <li><strong>Обнаружено:</strong>
