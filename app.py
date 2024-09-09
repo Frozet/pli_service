@@ -7,6 +7,7 @@ from flask import Flask, flash, render_template, redirect, url_for, request, ses
 import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import random
 import hashlib
 import base64
 from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
@@ -318,8 +319,6 @@ def add_diagnostic(diagnostic_id):
             photo_path = []
         user_name = session['username']
         yandex_api_key = get_yandex_api_key()
-        print(photo_path)
-        print(True if photo_path else False)
         return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, diagnostic=diagnostic, photo_count=photo_count, photo_path=photo_path, areas=areas, edit_mode=edit_mode)
     else:
         edit_mode = False
@@ -350,7 +349,7 @@ def edit_diagnostic(diagnostic_id):
         saved_files = []
         for file in files:
             if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+                filename = secure_filename('diagnostic_' + str(random.randint(1000000, 9999999)) + '_' + file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 saved_files.append(file_path[7:])
@@ -380,7 +379,7 @@ def submit_diagnostic():
         for file in files:
 
             if file and allowed_file(file.filename):
-                filename = secure_filename('diagnostic' + file.filename)
+                filename = secure_filename('diagnostic_' + str(random.randint(1000000, 9999999)) + '_' + file.filename)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 saved_files.append(file_path[7:])
