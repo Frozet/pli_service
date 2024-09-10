@@ -13,6 +13,7 @@ def get_db_connection():
     )
     return conn
 
+# Получение данных для идентификации
 def get_user_data(username):
     # устанавливаем соединение с БД
         conn = get_db_connection()
@@ -25,6 +26,7 @@ def get_user_data(username):
         conn.close()
         return user
 
+# Получение пароля из бд
 def get_user_password(user_id):
     # Проверяем текущий пароль
     conn = get_db_connection()
@@ -33,6 +35,7 @@ def get_user_password(user_id):
     stored_password = c.fetchone()['password']
     return stored_password
 
+# Изменение пароля
 def update_user_password(hashed_new_password, user_id):
     conn = get_db_connection()
     c = conn.cursor(cursor_factory=RealDictCursor)
@@ -179,7 +182,7 @@ def get_users():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получение поля area_name по внешнему ключу и указание стандартного значения
     cur.execute('''
-                SELECT users.id, users.username, users.full_name, users.role, 
+                SELECT users.id, users.username, users.full_name, users.role, users.timestampdata,
                     COALESCE(areas.name, 'Все участки') AS area_name
                 FROM users
                 LEFT JOIN areas ON users.areaid = areas.id
@@ -194,7 +197,7 @@ def get_user(user_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute('''
-                SELECT users.id, users.username, users.full_name, users.role, 
+                SELECT users.id, users.username, users.full_name, users.role, users.timestampdata,
                     COALESCE(areas.name, 'Все участки') AS area_name
                 FROM users
                 LEFT JOIN areas ON users.areaid = areas.id
@@ -208,10 +211,11 @@ def get_user(user_id):
 def update_user(user_id, username, full_name, role, areaid=None):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+    user_timestampdata = datetime.now()
     cur.execute("""
-        UPDATE users SET username = %s, full_name = %s, role = %s, areaid = %s
+        UPDATE users SET username = %s, full_name = %s, role = %s, areaid = %s, timestampdata = %s
         WHERE id = %s
-    """, (username, full_name, role, areaid, user_id))
+    """, (username, full_name, role, areaid, user_timestampdata, user_id))
     
     conn.commit()
     conn.close()
@@ -248,7 +252,8 @@ def get_area(area_id):
 def add_area(name):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('INSERT INTO areas (name) VALUES (%s)', (name,))
+    area_timestampdata = datetime.now()
+    cur.execute('INSERT INTO areas (name, timestampdata) VALUES (%s, %s)', (name, area_timestampdata))
     conn.commit()
     conn.close()
     return None
@@ -257,10 +262,11 @@ def add_area(name):
 def update_area(area_id, name):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+    area_timestampdata = datetime.now()
     cur.execute("""
-        UPDATE areas SET name = %s
+        UPDATE areas SET name = %s, timestampdata = %s
         WHERE id = %s
-    """, (name, area_id))
+    """, (name, area_timestampdata, area_id))
     
     conn.commit()
     conn.close()

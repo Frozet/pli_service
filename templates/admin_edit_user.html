@@ -62,6 +62,10 @@
                         <th>Участок</th>
                         <td>{% if user['area_name'] != 'Все участки' %}{{ user['area_name'] }}.{% else %}{{ user['area_name'] }}{% endif %}</td>
                     </tr>
+                    <tr>
+                        <th>Создан/Изменен</th>
+                        <td>{{ user['timestampdata'] }}</td>
+                    </tr>
                 </table>
             </div>
                 {% if user['role'] != 'Admin' %}

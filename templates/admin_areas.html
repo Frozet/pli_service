@@ -44,6 +44,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Имя</th>
+                                <th>Создан/Изменен</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -51,6 +52,7 @@
                             <tr>
                                 <td>{{ area['id'] }}</td>
                                 <td><a href="{{ url_for('admin_edit_area', area_id=area['id']) }}">{{ area['name'] }}.</a></td>
+                                <td>{{ area['timestampdata'] }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

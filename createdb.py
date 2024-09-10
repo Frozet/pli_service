@@ -16,7 +16,8 @@ c = conn.cursor()
 c.execute('''
     CREATE TABLE IF NOT EXISTS areas (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255)
+        name VARCHAR(255),
+        timestampdata TIMESTAMP
     )
 ''')
 
@@ -54,6 +55,7 @@ c.execute('''
         password VARCHAR(255),
         full_name VARCHAR(255),
         role VARCHAR(255),
+        timestampdata TIMESTAMP,
         areaid INTEGER REFERENCES areas (id)
     )
 ''')

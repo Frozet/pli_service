@@ -27,6 +27,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Настройка пути к wkhtmltopdf
 config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')  # укажите правильный путь
 
+# Проверка разрешения файла
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -70,6 +71,7 @@ def user_login():
 
     return render_template('login_adm.html', error=error)
 
+# Изменение пароля пользователя
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     if request.method == 'POST':
@@ -97,6 +99,7 @@ def change_password():
 
     return render_template('change_password.html')
 
+# Выход из сессии
 @app.route('/logout')
 def logout():
     # Удаление данных пользователя из сессии

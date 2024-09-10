@@ -47,6 +47,7 @@
                                 <th>Полное имя</th>
                                 <th>Роль</th>
                                 <th>Участок</th>
+                                <th>Создан/Изменен</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,6 +58,7 @@
                                 <td>{{ user['full_name'] }}</td>
                                 <td>{% if user['role'] == 'Admin' %}Админ{% elif user['role'] == 'User' %}Редактор{% else %}Пользователь{% endif %}</td>
                                 <td>{% if user['area_name'] != 'Все участки' %}{{ user['area_name'] }}.{% else %}{{ user['area_name'] }}{% endif %}</td>
+                                <td>{{ user['timestampdata'] }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
