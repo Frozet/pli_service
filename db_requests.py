@@ -308,6 +308,7 @@ def format_diagnostic_data(diagnostic):
 
     return problem_details, format_date, wells_details, photo_paths
 
+# Форматирование данных для вставки в базу
 def data_from_add_to_db(request):
     diagnostic_name = request.form['name']
     diagnostic_address = request.form['address']
@@ -362,6 +363,7 @@ def data_from_add_to_db(request):
 
     return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata
 
+# Вставка новой диагностики в дб
 def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, saved_files=''):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -391,6 +393,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     
     return None
 
+# Редактирование диагностики
 def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, diagnostic_photo_path=''):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -416,6 +419,7 @@ def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind
     
     return None
 
+# Удаление записи диагностики
 def delete_func(diagnostic_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -423,3 +427,36 @@ def delete_func(diagnostic_id):
     conn.commit()
     conn.close()
     return None
+
+# Получение суммарной дистанции
+def distance_sum(start_date, end_date):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Базовый запрос для подсчета общего количества записей
+    where_clauses = []
+    params = []
+
+    # Фильтрация по дате
+    if start_date:
+        where_clauses.append("date >= %s")
+        params.append(start_date)
+    if end_date:
+        where_clauses.append("date <= %s")
+        params.append(end_date)
+    
+    # Запрос для подсчета итоговой дистанции
+    total_distance = 0
+    if start_date or end_date:
+        sum_query = "SELECT SUM(distance) FROM diagnostics"
+        if where_clauses:
+            sum_query += " WHERE " + " AND ".join(where_clauses)
+        cursor.execute(sum_query, params)
+        total_distance = cursor.fetchone()['sum']
+
+    conn.close()
+
+    return str(total_distance) + ' м'
+
+def inject_year():
+    return datetime.now().year

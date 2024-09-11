@@ -35,6 +35,17 @@
         display: flex;
         justify-content: center;
       }
+      .footer {
+        background-color: #f8f9fa; /* Светло-серый цвет */
+        color: #6c757d; /* Серый текст */
+        padding: 10px 0;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+      }
+      .footer small {
+        font-size: 0.8em; /* Мелкий текст */
+      }
     </style>
 
 
@@ -190,9 +201,40 @@
                       <li class="page-item"><a class="page-link" href="{{ url_for('view_diagnostics', sort_by=sort_by, order=order, page=page+1) }}">Следующая</a></li>
                   {% endif %}
               </ul>
-          </nav>
+            </nav>
+            <div class="mt-4">
+              <form method="GET" action="{{ url_for('view_diagnostics') }}" class="d-flex align-items-end">
+                  <div class="me-2">
+                      <label for="start_date" class="form-label">Начальная дата:</label>
+                      <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+                  </div>
+                  <div class="me-2">
+                      <label for="end_date" class="form-label">Конечная дата:</label>
+                      <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+                  </div>
+                  <div class="me-2">
+                      <button type="submit" class="btn btn-primary">Показать</button>
+                  </div>
+                  {% if total_distance %}
+                      <div>
+                          <label class="form-label">Итоговая дистанция:</label>
+                          <input type="text" class="form-control" value="{{ total_distance }}" readonly>
+                      </div>
+                  {% endif %}
+              </form>
+          </div>
         </div>
       </main>
+      <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <br><br><br><br>
+            <small class="text-muted">МУП "Водоканал" г. Иркутска</small>
+            <br>
+            <small>Разработчик: Морозов И.</small>
+            <br>
+            <small>{{ current_year }} г.</small>
+        </div>
+    </footer>
       <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
     </body>
 </html>

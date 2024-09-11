@@ -10,7 +10,7 @@ from psycopg2.extras import RealDictCursor
 import random
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum, inject_year
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -406,14 +406,20 @@ def view_diagnostics():
     page = int(request.args.get('page', 1))  # Текущая страница, по умолчанию - 1
     per_page = 50  # Количество записей на странице
 
+    # Получаем параметры фильтрации по дате
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    # Считаем дистанцию
+    total_distance = distance_sum(start_date, end_date)
+
     # Устанавливаем начальный и конечный индексы для пагинации
     start = (page - 1) * per_page
     end = start + per_page
 
     diagnostics, total_pages = get_diagnostics(search_query, area_filter, sort_by, order, per_page, start)
-
+    current_year = inject_year()
     return render_template('view_page.html', areas=areas, diagnostics=diagnostics, sort_by=sort_by, order=order,
-                           page=page, total_pages=total_pages)
+                           page=page, total_pages=total_pages, total_distance=total_distance, current_year=current_year)
 
 @app.route('/diagnostic_page/<int:diagnostic_id>')
 def diagnostic_page(diagnostic_id):
