@@ -1,60 +1,36 @@
-<!doctype html>
-<html lang="en" data-bs-theme="auto">
-  <head><script src="../assets/js/color-modes.js"></script>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
-    <meta charset="utf-8">
-    <title>PLI Service</title>
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+{% extends "base.html" %}
 
-<link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+{% block title %}PLI Service{% endblock %}
 
-    <style>
-      .main-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-        margin-top: 10px;
-      }
-    </style>
+{% block style %}
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px;
+  margin-top: 10px;
 
-    <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='headers.css') }}" rel="stylesheet">
-    <script type="text/javascript">
-      ymaps.ready(init);
-      function init(){
-          var myMap = new ymaps.Map("map", {
-              center: [52.27,104.31],
-              zoom: 12
-          });
-      }
-    </script>
+}
+{% endblock %}
 
-  </head>
-  <body>
-    <main>
-        <div class="container">
-            <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-                <span class="fs-4">PLI Service</span>
-            </a>    <ul class="nav nav-pills">
-                {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                  <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
-                {% endif %}
-                <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
-                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">{% if session['user_id'] %}{% if session['role'] == 'Admin' %}Панель администратора{% else %}Аккаунт{% endif %}{% else %}Войти{% endif %}</a></li>
-            </ul>
-            </header>
-        </div>
-        <div class="main-content">
-          <div id="map" style="width: 800px; height: 500px"></div>
-        </div>
-      </main>
-      <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
-    </body>
-</html>
+{% block script %}
+<script type="text/javascript">
+  ymaps.ready(init);
+  function init(){
+      var myMap = new ymaps.Map("map", {
+          center: [52.27,104.31],
+          zoom: 12
+      });
+  }
+</script>
+{% endblock %}
+
+    
+{% block content %}
+  <div class="main-content">
+    <div id="map" style="width: 800px; height: 500px"></div>
+  </div>
+{% endblock %}
+
+      

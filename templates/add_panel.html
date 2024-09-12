@@ -1,17 +1,7 @@
-<!doctype html>
-<html lang="ru" data-bs-theme="auto">
-  <head><script src="../assets/js/color-modes.js"></script>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Добавление диагностики</title>
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
-    <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+{% extends "base.html" %}
+    {% block title %}Добавление диагностики{% endblock %}
 
-    <style>
-      
-
+      {% block style %}
       .main-content {
         display: flex;
         margin: 0;
@@ -43,34 +33,9 @@
         height: auto; /* Сохраняет пропорции изображения */
         margin-bottom: 10px; /* Добавляет отступ между изображениями, если их несколько */
       }
-    </style>
+      {% endblock %}
 
-
-    <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='headers.css') }}" rel="stylesheet">
-
-  </head>
-  <body>
-    <main>
-        <div class="container">
-            <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    
-                <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                    <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-                    <span class="fs-4">PLI Service</span>
-                </a>    
-                <ul class="nav nav-pills">
-                    {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                        <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
-                    {% endif %}
-                    <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                    <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link">О приложении</a></li>
-                    <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">{% if session['role'] == 'Admin' %}Панель администратора{% else %}Аккаунт{% endif %}</a></li>
-                </ul>
-            </header>
-        </div>
-        
+        {% block content %}
         <div class="main-content">
             <!-- Левая половина - блоки формы -->
             <div class="form-content">
@@ -313,12 +278,9 @@
                 this.appendChild(input);
             });
           </script>
+        {% endblock %}
 
-    </main>
-
-
-    <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
-
+    {% block script_second %}
     <script>
       ymaps.ready(init);
         function init(){
@@ -349,7 +311,5 @@
             });
         }
     </script>
+    {% endblock %}
 
-    
-  </body>
-</html>

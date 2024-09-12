@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ Панель - PLI Service{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 10px;
+        }
+
+        .header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .sidebar {
+            background-color: #f8f9fa;
+            padding: 15px;
+            min-width: 200px;
+        }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .card-header {
+            background-color: #1f4bdc;
+        }
+
+        .logout-button {
+            background-color: #1f4bdc;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            background-color: #315cea;
+        }
+        {% block style %}{% endblock %}
+    </style>
+    <link href="{{ url_for('static', filename='adm_table.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('index') }}" class="h5 mb-0">PLI Service</a>
+        <div class="d-flex align-items-center">
+            <span class="mr-3">Вы зашли как {{ session['username'] }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-button">Выход</a>
+        </div>
+    </div>
+
+    <div class="d-flex flex-grow-1">
+        <!-- Sidebar -->
+        <div class="sidebar d-flex flex-column">
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-light mb-2">Информация</a>
+            <a href="{{ url_for('admin_diagnostics') }}" class="btn btn-light mb-2">Диагностики</a>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-light mb-2">Пользователи</a>
+            <a href="{{ url_for('admin_areas') }}" class="btn btn-light mb-2">Участки</a>
+            <a href="#" class="btn btn-light mb-2">Настройки</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    {% block script %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

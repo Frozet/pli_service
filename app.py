@@ -10,7 +10,7 @@ from psycopg2.extras import RealDictCursor
 import random
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum, inject_year
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -37,6 +37,10 @@ def get_yandex_api_key():
     with open('static/yandex_api_key.txt', 'r') as f:
         yandex_api_key = f.readline()
     return yandex_api_key
+
+@app.context_processor
+def inject_year():
+    return {'current_year': datetime.now().year}
 
 # Главная страница
 @app.route('/index')
@@ -417,9 +421,9 @@ def view_diagnostics():
     end = start + per_page
 
     diagnostics, total_pages = get_diagnostics(search_query, area_filter, sort_by, order, per_page, start)
-    current_year = inject_year()
+
     return render_template('view_page.html', areas=areas, diagnostics=diagnostics, sort_by=sort_by, order=order,
-                           page=page, total_pages=total_pages, total_distance=total_distance, current_year=current_year)
+                           page=page, total_pages=total_pages, total_distance=total_distance)
 
 @app.route('/diagnostic_page/<int:diagnostic_id>')
 def diagnostic_page(diagnostic_id):
