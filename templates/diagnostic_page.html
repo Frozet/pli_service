@@ -48,16 +48,16 @@
                 <button class="btn btn-primary">Назад к списку</button>
             </a>
             <!-- Right-aligned buttons -->
-              <div>
-                <a href="{{ url_for('generate_pdf', diagnostic_id=diagnostic['id']) }}">
-                  <button class="btn btn-secondary">Загрузить отчет</button>
+            <div>
+              <a href="{{ url_for('generate_pdf', diagnostic_id=diagnostic['id']) }}">
+                <button class="btn btn-secondary">Загрузить отчет</button>
               </a>
-                {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                  <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
-                      <button class="btn btn-secondary">Изменить</button>
-                  </a>
-                  <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
-                {% endif %}
+              {% if session['role'] == 'User' or session['role'] == 'Admin'%}
+                <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
+                  <button class="btn btn-secondary">Изменить</button>
+                </a>
+                <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
+              {% endif %}
             </div>
         </div>
         <div class="main-content row">

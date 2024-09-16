@@ -166,6 +166,7 @@ def get_diagnostics_coordinates():
     diagnostics = cur.fetchall()
     conn.close()
     return diagnostics
+
 # Получение путей к фотографиям диагностики
 def get_diagnostic_photo_path(diagnostic_id):
     conn = get_db_connection()
@@ -175,6 +176,16 @@ def get_diagnostic_photo_path(diagnostic_id):
     conn.close()
     photo_path = raw_photo_path['photo_path']
     return photo_path
+
+# Получение путей к графикам уклона диагностики
+def get_diagnostic_slope_graph(diagnostic_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT slope_graph_path FROM diagnostics WHERE id = %s", (diagnostic_id,))
+    raw_slope_graph = cursor.fetchone()
+    conn.close()
+    slope_graph = raw_slope_graph['slope_graph_path']
+    return slope_graph
 
 # Получение данных всех пользователей
 def get_users():
@@ -305,8 +316,12 @@ def format_diagnostic_data(diagnostic):
         photo_paths = diagnostic['photo_path'].split(',')
     else:
         photo_paths = []
+    if diagnostic['slope_graph_path']:
+        slope_graph_path = diagnostic['slope_graph_path'].split(',')
+    else:
+        slope_graph_path = []
 
-    return problem_details, format_date, wells_details, photo_paths
+    return problem_details, format_date, wells_details, photo_paths, slope_graph_path
 
 # Форматирование данных для вставки в базу
 def data_from_add_to_db(request):
@@ -364,7 +379,7 @@ def data_from_add_to_db(request):
     return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata
 
 # Вставка новой диагностики в дб
-def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, saved_files=''):
+def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, saved_files='', slope_graph=''):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -373,8 +388,8 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     INSERT INTO diagnostics (
         short_title, address, diagnostic_type, date, coordinates, type, diameter, material, distance, 
         count_of_well, distance_between_wells, slope_between_wells, flow, 
-        author, problems, problems_distances, timestampdata, areaid, photo_path
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        author, problems, problems_distances, timestampdata, areaid, photo_path, slope_graph_path
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
 
     # Выполнение запроса
@@ -384,7 +399,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
         diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, 
-        diagnostic_areaid, saved_files
+        diagnostic_areaid, saved_files, slope_graph
     ))
 
     # Фиксация изменений и закрытие соединения
@@ -394,7 +409,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     return None
 
 # Редактирование диагностики
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, diagnostic_photo_path=''):
+def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, diagnostic_photo_path='', diagnostic_slope_graph=''):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -403,14 +418,16 @@ def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind
                date = %s, coordinates = %s, type = %s, diameter = %s, material = %s, 
                distance = %s, count_of_well = %s, distance_between_wells = %s,
                slope_between_wells = %s, flow = %s, author = %s, problems = %s, 
-               problems_distances = %s, timestampdata = %s, areaid = %s, photo_path = %s
+               problems_distances = %s, timestampdata = %s,
+               areaid = %s, photo_path = %s, slope_graph_path = %s
         WHERE id = %s
     """, (
         diagnostic_address, diagnostic_name, diagnostic_kind, diagnostic_date, 
         diagnostic_coordinates, diagnostic_type, diagnostic_diameter, 
         diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans,
         diagnostic_slopes, diagnostic_flows, diagnostic_author,
-        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid, diagnostic_photo_path, 
+        diagnostic_problems, diagnostic_problem_distances, diagnostic_timestampdata, diagnostic_areaid, 
+        diagnostic_photo_path, diagnostic_slope_graph,
         diagnostic_id
     ))
 
@@ -457,6 +474,3 @@ def distance_sum(start_date, end_date):
     conn.close()
 
     return str(total_distance) + ' м'
-
-def inject_year():
-    return datetime.now().year

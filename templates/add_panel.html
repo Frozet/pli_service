@@ -180,6 +180,21 @@
                         <label for="photos">Загрузить фотографии (по одной на проблему):</label>
                         <input type="file" id="photos" name="photos" multiple>
                     </div>
+                    <div class="mb-3">
+                        {% if edit_mode %}
+                            Загружено {{ slope_graph_count }} графиков<br>
+                        {% endif %}
+                        {% if slope_graph_path %}
+                            {% for slope_graph in slope_graph_path %}
+                                <div class="slope_graph-item">
+                                    <input type="text" class="form-control" value="{{ slope_graph }}" readonly>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSlopeGraph('{{ slope_graph }}')">Удалить</button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <label for="slope_graph">Загрузить графики уклона:</label>
+                        <input type="file" id="slope_graph" name="slope_graph" multiple>
+                    </div>
                     
                     <div class="form-group mt-3">
                         <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
@@ -275,6 +290,23 @@
                 input.type = 'hidden';
                 input.name = 'photos_to_delete';
                 input.value = photosToDelete.join(',');
+                this.appendChild(input);
+            });
+
+            var SlopeGraphToDelete = [];
+            function removeSlopeGraph(slope_graph) {
+                // Добавляем график в список для удаления
+                SlopeGraphToDelete.push(photo);
+                // Убираем график с экрана
+                event.target.closest('.slope_graph-item').remove();
+            }
+
+            // Передаем список графиков для удаления в скрытое поле
+            document.querySelector('form').addEventListener('submit', function() {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'slope_graph_to_delete';
+                input.value = SlopeGraphToDelete.join(',');
                 this.appendChild(input);
             });
           </script>

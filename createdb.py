@@ -43,7 +43,8 @@ c.execute('''
         problems_distances TEXT,
         timestampdata TIMESTAMP,
         areaid INTEGER REFERENCES areas (id),
-        photo_path VARCHAR(255)
+        photo_path VARCHAR(512),
+        slope_graph_path VARCHAR(512)
     )
 ''')
 
