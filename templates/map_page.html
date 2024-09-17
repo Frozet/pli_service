@@ -67,11 +67,13 @@
                                         default:
                                             var ico_link = '/static/assets/mark1.png';
                                     }
-                                    
+                                    console.log(id);
+                                    console.log({{ diagnostic['id'] }});
+
                                     // Создание маркера с ссылкой в названии
                                     var myPlacemark = new ymaps.Placemark(lst_coordinates, {
                                         hintContent: title,
-                                        balloonContent: '<strong><a href="{{ url_for('diagnostic_page', diagnostic_id=diagnostic['id']) }}">' + title + '</a></strong>'
+                                        balloonContent: '<strong><a href="/diagnostic_page/' + id + '">' + title + '</a></strong>'
                                     }, {
                                         // Опции.
                                         // Необходимо указать данный тип макета.
