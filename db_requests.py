@@ -296,7 +296,7 @@ def delete_area(area_id):
 def format_diagnostic_data(diagnostic):
     if diagnostic['problems']:
         # Подготовка проблем и расстояний
-        problems = diagnostic['problems'].split(',')
+        problems = diagnostic['problems'].split(';')
         distances = diagnostic['problems_distances'].split(',')
         problem_details = list(zip(problems, distances))  # Создание списка кортежей (проблема, расстояние)
     else:
@@ -474,3 +474,42 @@ def distance_sum(start_date, end_date):
     conn.close()
 
     return str(total_distance) + ' м'
+
+# Получение данных диагностик за год
+def get_diagnostics_for_year(year):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    # SQL-запрос для выборки всех диагностик за год
+    query = """
+        SELECT * FROM diagnostics
+        WHERE EXTRACT(YEAR FROM timestampdata) = %s
+        ORDER BY date ASC
+    """
+    cursor.execute(query, (year,))
+    diagnostics = cursor.fetchall()
+    conn.close()
+
+    for diagnostic in diagnostics:
+        date_of_diagnostic = diagnostic['date'].split('-')
+        format_date = date_of_diagnostic[2] + '.' + date_of_diagnostic[1] + '.' +  date_of_diagnostic[0] # Форматирование в удобный формат
+        diagnostic['date'] = format_date
+        if diagnostic['problems']:
+            # Подготовка проблем и расстояний
+            problems = diagnostic['problems'].split(';')
+            distances = diagnostic['problems_distances'].split(',')
+            problem_details = list(zip(problems, distances))  # Создание списка кортежей (проблема, расстояние)
+        else:
+            problem_details = []
+        # Подготовка информации о пролетах
+        flows = diagnostic['flow'].split(',')
+        wells = diagnostic['count_of_well'].split(',')
+        wells_firsts = [i for i in wells[::2]]
+        wells_seconds = [i for i in wells[1::2]]
+        distances_between_wells = diagnostic['distance_between_wells'].split(',')
+        slope_between_wells = diagnostic['slope_between_wells'].split(',')
+        wells_details = list(zip(wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds)) # Создание списка кортежей
+        diagnostic['problems'] = problem_details # Перезаписываем отформатированные данные в соответствующие поля
+        diagnostic['count_of_well'] = wells_details
+
+    return diagnostics

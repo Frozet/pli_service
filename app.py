@@ -11,7 +11,7 @@ from psycopg2.extras import RealDictCursor
 import random
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostic_slope_graph, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum
+from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostic_slope_graph, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum, get_diagnostics_for_year
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -562,6 +562,21 @@ def map_page():
      with open('static/areas.json', 'r', encoding='utf-8') as f:
         areas = json.load(f)
      return render_template('map_page.html', diagnostics=diagnostics_list, yandex_api_key=yandex_api_key, areas=areas)
+
+# Генерация годового отчета
+@app.route('/annual_report')
+def annual_report():
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+
+    # Получаем год из GET-параметра, если он указан, иначе используем текущий год
+    year = request.args.get('year', datetime.now().year, type=int)
+
+    # Извлекаем данные о диагностике за текущий год из базы данных
+    diagnostics = get_diagnostics_for_year(year)
+
+    # Рендерим шаблон с данными
+    return render_template('annual_report.html', diagnostics=diagnostics, year=year)
 
 
 if __name__ == '__main__':

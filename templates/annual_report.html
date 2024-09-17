@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      .table-container {
+            width: 95%;
+            margin: 0 auto;  /* Центрирование контейнера */
+            font-family: Arial, Helvetica, sans-serif;
+      }
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+      }
+      th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+      }
+      th {
+          background-color: #f2f2f2;
+          text-align: left;
+      }
+      .diagnosis-result {
+          color: black;
+      }
+      .green-text {
+          color: green;
+          text-decoration-color: green;
+      }
+      .purple-text {
+          color: purple;
+          text-decoration-color: purple;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+        <div class="table-container">
+        <h4>Телеинспекция {{ year }}</h4>
+        <span class="green-text">Зеленый цвет - выявленный колодец</span><br>
+        <span class="purple-text">Фиолетовый цвет - приемка новой сети</span>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Дата</th>
+                    <th>Адрес</th>
+                    <th>Материал</th>
+                    <th>Результат</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for diagnostic in diagnostics %}
+                <tr>
+                    <!-- Номер строки -->
+                    <td><span class={% if diagnostic['diagnostic_type'] == 'Найден колодец' %}"green-text"{% elif diagnostic['diagnostic_type'] == 'Приемка' %}"purple-text"{% else %}"diagnosis-result"{% endif %}>{{ loop.index }}</span></td>
+
+                    <!-- Дата -->
+                    <td><span class={% if diagnostic['diagnostic_type'] == 'Найден колодец' %}"green-text"{% elif diagnostic['diagnostic_type'] == 'Приемка' %}"purple-text"{% else %}"diagnosis-result"{% endif %}>{{ diagnostic['date'] }}</span></td>
+
+                    <!-- Адрес -->
+                    <td><span class={% if diagnostic['diagnostic_type'] == 'Найден колодец' %}"green-text"{% elif diagnostic['diagnostic_type'] == 'Приемка' %}"purple-text"{% else %}"diagnosis-result"{% endif %}>{{ diagnostic['address'] }}</span></td>
+
+                    <!-- Материал (Диаметр, материал, тип) -->
+                    <td><span class={% if diagnostic['diagnostic_type'] == 'Найден колодец' %}"green-text"{% elif diagnostic['diagnostic_type'] == 'Приемка' %}"purple-text"{% else %}"diagnosis-result"{% endif %}>{{ diagnostic['diameter'] }} мм, {{ diagnostic['material'] }}, {{ diagnostic['type'] }}</span></td>
+
+                    <!-- Результат диагностики -->
+                    <td>
+                        <span class={% if diagnostic['diagnostic_type'] == 'Найден колодец' %}"green-text"{% elif diagnostic['diagnostic_type'] == 'Приемка' %}"purple-text"{% else %}"diagnosis-result"{% endif %}>Диагностика проведена:
+                        {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in diagnostic['count_of_well'] %}
+                        {% if not loop.first %}, {% endif %}
+                        из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
+                        {% endfor %}. 
+                        
+                        Обнаружено:
+                        {% if diagnostic['problems'] %}
+                        {% for problem, distance in diagnostic['problems'] %}
+                            {% if not loop.first %}, {% endif %}
+                            {{ problem }} на расстоянии {{ distance }} м
+                        {% endfor %}
+                        {% else %}
+                        Проблем не обнаружено
+                        {% endif %}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </div>
+    <script src="{{ url_for('static', filename='assets/dist/js/bootstrap.bundle.min.js') }}"></script>
+  </body>
+</html>
