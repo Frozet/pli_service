@@ -1,12 +1,14 @@
+import os
 import psycopg2
 from psycopg2 import sql
+from createuser import create_user
 
 # Подключение к базе данных PostgreSQL
 conn = psycopg2.connect(
-    host="localhost",      # Например, "localhost"
-    database="pli_service", # Название вашей базы данных
-    user="postgres",  # Имя пользователя PostgreSQL
-    password="postgres"  # Пароль пользователя PostgreSQL
+    host=os.getenv('POSTGRES_HOST'),
+    database=os.getenv('POSTGRES_DB'),
+    user=os.getenv('POSTGRES_USER'),
+    password=os.getenv('POSTGRES_PASSWORD')
 )
 
 # Создание курсора
@@ -65,3 +67,5 @@ c.execute('''
 conn.commit()
 c.close()
 conn.close()
+
+create_user('admin', 'admin', 'Admin Admin', 'Admin')

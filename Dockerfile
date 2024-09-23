@@ -1,10 +1,29 @@
-FROM ubuntu:latest
-MAINTAINER Ivan Morozov
-RUN apt-get update -y && apt-get install -y python3-pip python3-venv
-COPY . /app
+# Используем образ Python
+FROM python:3.12-slim
+
+# Устанавливаем зависимости для wkhtmltopdf и PostgreSQL
+RUN apt-get update -y && apt-get install -y \
+    python3-pip \
+    libpq-dev \
+    wkhtmltopdf \
+    xfonts-75dpi \
+    xfonts-base \
+    && rm -rf /var/lib/apt/lists/*
+
+# Указываем рабочую директорию
 WORKDIR /app
-RUN python3 -m venv venv
-RUN . venv/bin/activate
-RUN . venv/bin/activate && pip install -r requirements.txt
-ENTRYPOINT ["venv/bin/python"]
-CMD ["app.py"]
+
+# Копируем все файлы в контейнер
+COPY . /app
+
+# Устанавливаем зависимости из requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Устанавливаем переменную окружения для wkhtmltopdf
+ENV WKHTMLTOPDF_PATH=/usr/bin/wkhtmltopdf
+
+# Указываем порт, на котором будет работать приложение
+EXPOSE 5000
+
+# Команда для запуска приложения
+CMD ["python", "app.py"]

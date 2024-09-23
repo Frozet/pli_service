@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import psycopg2
 import hashlib
@@ -7,10 +8,10 @@ def create_user(username, password, full_name, role, areaid=None):
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
 
     conn = psycopg2.connect(
-        host="localhost",
-        database="pli_service",
-        user="postgres",
-        password="postgres"
+        host=os.getenv('POSTGRES_HOST'),
+        database=os.getenv('POSTGRES_DB'),
+        user=os.getenv('POSTGRES_USER'),
+        password=os.getenv('POSTGRES_PASSWORD')
     )
 
     user_timestampdata = datetime.now()
@@ -26,5 +27,5 @@ def create_user(username, password, full_name, role, areaid=None):
     conn.commit()
     conn.close()
 
-# Впишите нужные логин, пароль, полное имя, роль(Admin, User или Viewer) и id участка
+# Впишите нужные логин, пароль, полное имя, роль(Admin, User или Viewer) и id участка(для Viewer)
 # create_user('testuser', 'testuser', 'Тестов Тест Тестович', 'Viewer', '1')

@@ -11,7 +11,9 @@ from psycopg2.extras import RealDictCursor
 import random
 import hashlib
 import base64
-from db_requests import get_user_data, get_user_password, update_user_password, get_diagnostic_detail, get_diagnostic_photo_path, get_diagnostic_slope_graph, get_diagnostics, get_users, get_user, update_user, delete_user, get_areas, get_area, add_area, update_area, delete_area, format_diagnostic_data, get_diagnostics_coordinates, delete_func, data_from_add_to_db, insert_to_db, edit_row, distance_sum, get_diagnostics_for_year
+from db_requests import *
+from users_requests import *
+from areas_requests import *
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
@@ -26,7 +28,7 @@ app.secret_key = key  # тут секретный ключ
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Настройка пути к wkhtmltopdf
-config = pdfkit.configuration(wkhtmltopdf='/usr/local/bin/wkhtmltopdf')  # укажите правильный путь
+config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')  # укажите правильный путь
 
 # Проверка разрешения файла
 def allowed_file(filename):
@@ -580,4 +582,4 @@ def annual_report():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -1,0 +1,30 @@
+version: '3'
+services:
+  web:
+    build: .
+    command: python app.py
+    volumes:
+      - .:/app
+    ports:
+      - "5001:5001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: pli_service
+      POSTGRES_USER: pli_admin
+      POSTGRES_PASSWORD: pli_admin
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: pli_service
+      POSTGRES_USER: pli_admin
+      POSTGRES_PASSWORD: pli_admin
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
