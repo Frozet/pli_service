@@ -30,7 +30,7 @@ c.execute('''
         address VARCHAR(255),
         short_title VARCHAR(255),
         diagnostic_type VARCHAR(255),
-        date DATE,
+        date VARCHAR(255),
         coordinates TEXT,
         type VARCHAR(255),
         diameter INTEGER,
