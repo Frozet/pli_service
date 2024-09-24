@@ -156,7 +156,7 @@ def get_diagnostic_slope_graph(diagnostic_id):
     slope_graph = raw_slope_graph['slope_graph_path']
     return slope_graph
 
-# Форматирование данных для страницы с деталями инспекции
+# Форматирование данных для страницы с деталями диагностики
 def format_diagnostic_data(diagnostic):
     if diagnostic['problems']:
         # Подготовка проблем и расстояний
@@ -210,6 +210,7 @@ def data_from_add_to_db(request):
     diagnostic_problems = []
     diagnostic_problem_distances = []
 
+    # Формирование списков
     for key in request.form.keys():
         if key.startswith('well'):
             diagnostic_wells.append(request.form[key])

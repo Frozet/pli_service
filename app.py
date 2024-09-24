@@ -6,8 +6,6 @@ import pdfkit
 from PyPDF2 import PdfMerger
 from flask import Flask, flash, render_template, redirect, url_for, request, session, send_file
 import json
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import random
 import hashlib
 import base64
@@ -17,6 +15,7 @@ from areas_requests import *
 from createuser import create_user
 from graph_generate import generate_diagnostic_plot
 
+# Папка с загрузками
 UPLOAD_FOLDER = 'static/uploads/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
@@ -92,6 +91,7 @@ def change_password():
             flash('Новые пароли не совпадают.')
             return redirect(url_for('change_password'))
 
+        # Получаем зашифрованный текущий пароль
         stored_password = get_user_password(session['user_id'])
 
         if hashlib.sha256(current_password.encode('utf-8')).hexdigest() != stored_password:
@@ -374,7 +374,7 @@ def edit_diagnostic(diagnostic_id):
                     os.remove(os.path.join(app.config['UPLOAD_FOLDER'], photo[8:]))
                 except OSError:
                     pass
-
+        # Получаем список путей фотографий
         files = request.files.getlist('photos')
         saved_files = []
         for file in files:
@@ -383,7 +383,8 @@ def edit_diagnostic(diagnostic_id):
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 saved_files.append(file_path[7:])
-        
+
+        # Получаем список путей графиков уклонов
         slope_files = request.files.getlist('slope_graph')
         saved_slope_files = []
         for file in slope_files:
@@ -416,6 +417,7 @@ def submit_diagnostic():
         files = request.files.getlist('photos')
         files_slope_graph = request.files.getlist('slope_graph')
 
+        # Получаем список путей фотографий
         saved_files = []
         for file in files:
 
@@ -425,6 +427,7 @@ def submit_diagnostic():
                 file.save(file_path)
                 saved_files.append(file_path[7:])
         
+        # Получаем список путей графиков уклонов
         saved_files_slope_graph = []
         for file in files_slope_graph:
 
@@ -440,6 +443,7 @@ def submit_diagnostic():
         
     return render_template('submit_form.html', error=error)
 
+# Страница с диагностиками
 @app.route('/view_diagnostics', methods=['GET'])
 def view_diagnostics():
     if 'user_id' not in session:
@@ -468,12 +472,15 @@ def view_diagnostics():
     return render_template('view_page.html', areas=areas, diagnostics=diagnostics, sort_by=sort_by, order=order,
                            page=page, total_pages=total_pages, total_distance=total_distance)
 
+# Страница диагностики
 @app.route('/diagnostic_page/<int:diagnostic_id>')
 def diagnostic_page(diagnostic_id):
     if 'user_id' not in session:
         return redirect(url_for('user_login'))
     
+    # Получение данных диагностики
     diagnostic = get_diagnostic_detail(diagnostic_id)
+    # Форматирование данных для предоставления пользователю
     problem_details, format_date, wells_details, photos_paths, slope_graph_path = format_diagnostic_data(diagnostic)
     plot_buf = generate_diagnostic_plot(diagnostic)
     
@@ -542,7 +549,8 @@ def generate_pdf(diagnostic_id):
     )
 
     return response
-    
+
+ # Удаление диагностики   
 @app.route('/delete/<int:diagnostic_id>')
 def delete_diagnostic(diagnostic_id):
     if 'user_id' not in session:
@@ -554,6 +562,7 @@ def delete_diagnostic(diagnostic_id):
         return redirect(url_for('admin_diagnostics'))
     return redirect(url_for('view_diagnostics'))
 
+# Карта диагностик
 @app.route('/map')
 def map_page():
      if 'user_id' not in session:
