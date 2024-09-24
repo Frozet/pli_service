@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block style %}
+    .about-app {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    .about-app h2 {
+        margin-bottom: 20px;
+    }
+    .about-app strong {
+        color: #007bff; /* Цвет заголовков */
+    }
+    .about-app ul {
+        list-style-type: none; /* Убираем маркеры */
+        padding-left: 0; /* Убираем отступ */
+    }
+    .about-app ul li {
+        background-color: #e9ecef;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="about-app">
+        <h2>О приложении</h2>
+
+        <p><strong>Описание:</strong></p>
+        <p>Приложение "PLI Service" предназначено для хранения и структурирования записей о проведенных диагностиках трубопроводов, путем сбора, обработки и визуализации полученных данных.</p>
+
+        <p><strong>Функции:</strong></p>
+        <ul>
+        <li>Добавление и редактирование диагностик</li>
+        <li>Генерация отчетов</li>
+        <li>Генерация графиков диагностики</li>
+        <li>Отображение данных на карте</li>
+        <li>Управление данными</li>
+        </ul>
+
+        <p><strong>Контакты:</strong></p>
+        Иван Морозов<br>
+        Email: Morozov_IM@irkvkx.ru<br>
+        Telegram: @Frozet1
+    </div>
+</div>
+
+{% endblock %}
