@@ -103,7 +103,10 @@ def change_password():
         update_password = update_user_password(hashed_new_password, session['user_id'])
 
         flash(update_password)
-        return redirect(url_for('user_panel'))
+        if session['role'] == 'Admin':
+            return redirect(url_for('admin_panel'))
+        else:
+            return redirect(url_for('user_panel'))
 
     return render_template('change_password.html')
 
