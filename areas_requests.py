@@ -6,7 +6,7 @@ from flask import session
 from db_requests import get_db_connection
 
 # Получение всех участков
-def get_areas():
+def get_areas() -> list:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute('SELECT * FROM areas ORDER BY id ASC')
@@ -15,7 +15,7 @@ def get_areas():
     return areas
 
 # Получение участка по id
-def get_area(area_id):
+def get_area(area_id: int) -> dict:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute('SELECT * FROM areas WHERE id = %s', (area_id,))
@@ -24,7 +24,7 @@ def get_area(area_id):
     return area
 
 # Добавление участка
-def add_area(name):
+def add_area(name: str) -> None:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     area_timestampdata = datetime.now()
@@ -34,7 +34,7 @@ def add_area(name):
     return None
 
 # Редактирование участка
-def update_area(area_id, name):
+def update_area(area_id: int, name: str) -> None:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     area_timestampdata = datetime.now()
@@ -48,7 +48,7 @@ def update_area(area_id, name):
     return None
 
 # Удаление участка
-def delete_area(area_id):
+def delete_area(area_id: int) -> None:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("DELETE FROM areas WHERE id = %s", (area_id,))

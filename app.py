@@ -30,19 +30,19 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')  # укажите правильный путь
 
 # Проверка разрешения файла
-def allowed_file(filename):
+def allowed_file(filename: str) -> bool:
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Получение ключа от Yandex API
-def get_yandex_api_key():
+def get_yandex_api_key() -> str:
     with open('static/yandex_api_key.txt', 'r') as f:
         yandex_api_key = f.readline()
     return yandex_api_key
 
 # Получение текущего года
 @app.context_processor
-def inject_year():
+def inject_year() -> dict:
     return {'current_year': datetime.now().year}
 
 # Главная страница

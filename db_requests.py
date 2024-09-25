@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import session
 
 # Подключение к бд
-def get_db_connection():
+def get_db_connection() -> psycopg2.extensions.connection:
     conn = psycopg2.connect(
         host=os.getenv('POSTGRES_HOST'),
         database=os.getenv('POSTGRES_DB'),
@@ -15,7 +15,7 @@ def get_db_connection():
     return conn
 
 # Получение данных всех диагностик из бд
-def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
+def get_diagnostics(search_query: str, area_filter: str, sort_by: str, order: str, per_page: int, start: int) -> list:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -113,7 +113,7 @@ def get_diagnostics(search_query, area_filter, sort_by, order, per_page, start):
     return diagnostics, total_pages
 
 # Получение полных данных конкретной диагностики из бд
-def get_diagnostic_detail(diagnostic_id):
+def get_diagnostic_detail(diagnostic_id: int) -> dict:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM diagnostics WHERE id = %s", (diagnostic_id,))
@@ -122,7 +122,7 @@ def get_diagnostic_detail(diagnostic_id):
     return diagnostic
 
 # Получение данных для расположения иконок на карте
-def get_diagnostics_coordinates():
+def get_diagnostics_coordinates() -> list:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получите все необходимые данные, включая название диагностики, id, и координаты
@@ -137,7 +137,7 @@ def get_diagnostics_coordinates():
     return diagnostics
 
 # Получение путей к фотографиям диагностики
-def get_diagnostic_photo_path(diagnostic_id):
+def get_diagnostic_photo_path(diagnostic_id: int) -> str:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT photo_path FROM diagnostics WHERE id = %s", (diagnostic_id,))
@@ -147,7 +147,7 @@ def get_diagnostic_photo_path(diagnostic_id):
     return photo_path
 
 # Получение путей к графикам уклона диагностики
-def get_diagnostic_slope_graph(diagnostic_id):
+def get_diagnostic_slope_graph(diagnostic_id: int) -> str:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT slope_graph_path FROM diagnostics WHERE id = %s", (diagnostic_id,))
@@ -157,7 +157,7 @@ def get_diagnostic_slope_graph(diagnostic_id):
     return slope_graph
 
 # Форматирование данных для страницы с деталями диагностики
-def format_diagnostic_data(diagnostic):
+def format_diagnostic_data(diagnostic: dict) -> tuple:
     if diagnostic['problems']:
         # Подготовка проблем и расстояний
         problems = diagnostic['problems'].split(';')
@@ -188,7 +188,7 @@ def format_diagnostic_data(diagnostic):
     return problem_details, format_date, wells_details, photo_paths, slope_graph_path
 
 # Форматирование данных для вставки в базу
-def data_from_add_to_db(request):
+def data_from_add_to_db(request) -> tuple:
     diagnostic_name = request.form['name']
     diagnostic_address = request.form['address']
     diagnostic_type = request.form['type']
@@ -244,7 +244,7 @@ def data_from_add_to_db(request):
     return diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata
 
 # Вставка новой диагностики в дб
-def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, saved_files='', slope_graph=''):
+def insert_to_db(diagnostic_name: str, diagnostic_address: str, diagnostic_kind: str, diagnostic_date: str, diagnostic_coordinates: str, diagnostic_type: str, diagnostic_diameter: int, diagnostic_material: str, diagnostic_distance: float, diagnostic_wells: str, diagnostic_spans: str, diagnostic_slopes: str, diagnostic_flows: str, diagnostic_author: str, diagnostic_problems: str, diagnostic_problem_distances: str, diagnostic_areaid: int, diagnostic_timestampdata: datetime, saved_files: str='', slope_graph: str='') -> None:
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -274,7 +274,7 @@ def insert_to_db(diagnostic_name, diagnostic_address, diagnostic_kind, diagnosti
     return None
 
 # Редактирование диагностики
-def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind, diagnostic_date, diagnostic_coordinates, diagnostic_type, diagnostic_diameter, diagnostic_material, diagnostic_distance, diagnostic_wells, diagnostic_spans, diagnostic_slopes, diagnostic_flows, diagnostic_author, diagnostic_problems, diagnostic_problem_distances, diagnostic_areaid, diagnostic_timestampdata, diagnostic_photo_path='', diagnostic_slope_graph=''):
+def edit_row(diagnostic_id: int, diagnostic_name: str, diagnostic_address: str, diagnostic_kind: str, diagnostic_date: str, diagnostic_coordinates: str, diagnostic_type: str, diagnostic_diameter: int, diagnostic_material: str, diagnostic_distance: float, diagnostic_wells: str, diagnostic_spans: str, diagnostic_slopes: str, diagnostic_flows: str, diagnostic_author: str, diagnostic_problems: str, diagnostic_problem_distances: str, diagnostic_areaid: int, diagnostic_timestampdata: datetime, diagnostic_photo_path: str='', diagnostic_slope_graph: str='') -> None:
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -302,7 +302,7 @@ def edit_row(diagnostic_id, diagnostic_name, diagnostic_address, diagnostic_kind
     return None
 
 # Удаление записи диагностики
-def delete_func(diagnostic_id):
+def delete_func(diagnostic_id: int) -> None:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM diagnostics WHERE id = %s", (diagnostic_id,))
@@ -311,7 +311,7 @@ def delete_func(diagnostic_id):
     return None
 
 # Получение суммарной дистанции
-def distance_sum(start_date, end_date):
+def distance_sum(start_date: str, end_date: str) -> str:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -341,7 +341,7 @@ def distance_sum(start_date, end_date):
     return str(total_distance) + ' м'
 
 # Получение данных диагностик за год
-def get_diagnostics_for_year(year):
+def get_diagnostics_for_year(year: int) -> list:
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 

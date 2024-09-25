@@ -4,7 +4,7 @@ from flask import session
 from db_requests import get_db_connection
 
 # Получение данных для идентификации
-def get_user_data(username):
+def get_user_data(username: str) -> dict:
     # устанавливаем соединение с БД
         conn = get_db_connection()
         c = conn.cursor(cursor_factory=RealDictCursor)  # используем RealDictCursor
@@ -17,7 +17,7 @@ def get_user_data(username):
         return user
 
 # Получение пароля из бд
-def get_user_password(user_id):
+def get_user_password(user_id: int) -> str:
     # Проверяем текущий пароль
     conn = get_db_connection()
     c = conn.cursor(cursor_factory=RealDictCursor)
@@ -26,7 +26,7 @@ def get_user_password(user_id):
     return stored_password
 
 # Изменение пароля
-def update_user_password(hashed_new_password, user_id):
+def update_user_password(hashed_new_password: str, user_id: int) -> str:
     conn = get_db_connection()
     c = conn.cursor(cursor_factory=RealDictCursor)
     c.execute('UPDATE users SET password = %s WHERE id = %s', (hashed_new_password, user_id))
@@ -35,7 +35,7 @@ def update_user_password(hashed_new_password, user_id):
     return 'Пароль успешно изменен.'
 
 # Получение данных всех пользователей
-def get_users():
+def get_users() -> list:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     # Получение поля area_name по внешнему ключу и указание стандартного значения
@@ -51,7 +51,7 @@ def get_users():
     return users
 
 # Получение данных пользователя
-def get_user(user_id):
+def get_user(user_id: int) -> dict:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute('''
@@ -66,7 +66,7 @@ def get_user(user_id):
     return user
 
 # Редактирование данных пользователя
-def update_user(user_id, username, full_name, role, areaid=None):
+def update_user(user_id: int, username: str, full_name: str, role: str, areaid: str='') -> None:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     user_timestampdata = datetime.now()
@@ -80,7 +80,7 @@ def update_user(user_id, username, full_name, role, areaid=None):
     return None
 
 # Удаление пользователя
-def delete_user(user_id):
+def delete_user(user_id: int) -> None:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("DELETE FROM users WHERE id = %s", (user_id,))

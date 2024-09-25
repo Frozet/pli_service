@@ -3,7 +3,7 @@ matplotlib.use('Agg')  # Используем 'Agg' бэкэнд для рабо
 import matplotlib.pyplot as plt
 import io
 
-def generate_diagnostic_plot(diagnostic):
+def generate_diagnostic_plot(diagnostic: dict) -> io.BytesIO:
     distances = list(map(float, diagnostic['distance_between_wells'].split(',')))
     slopes = list(map(str, diagnostic['slope_between_wells'].split(',')))
     wells = diagnostic['count_of_well'].split(',')
