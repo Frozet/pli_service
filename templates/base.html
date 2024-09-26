@@ -3,6 +3,7 @@
   <head><script src="../assets/js/color-modes.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}Название страницы{% endblock %}</title>
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}" sizes="180x180">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
@@ -13,6 +14,19 @@
 <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
     
     <style>
+      @media (max-width: 576px) {
+        .header {
+            font-size: 16px;
+        }
+        .container {
+            padding: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+        }
+      }
       {% block style %}{% endblock %}
       .sphead {
         display: flex;
