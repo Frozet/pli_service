@@ -19,6 +19,16 @@
         display: flex;
         justify-content: center;
       }
+      html, body {
+        height: 100%; /* Заставляем html и body занимать всю высоту экрана */
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      .content {
+        flex: 1; /* Контент займет все пространство между хэдером и футером */
+      }
       .footer {
         background-color: #f8f9fa; /* Светло-серый цвет */
         color: #6c757d; /* Серый текст */
@@ -57,7 +67,8 @@
             </ul>
             </header>
         </div>
-        {% block content %}{% endblock %}
+        <div class="content container mt-5">{% block content %}{% endblock %}</div>
+        
     </main>
       <footer class="footer mt-auto py-3 bg-light">
         <div class="container text-center">
