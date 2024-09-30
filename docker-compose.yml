@@ -35,7 +35,10 @@ services:
       - web
     ports:
       - "80:80"  # Экспонируем порт 80 для доступа к приложению через Nginx
+      - "443:443"
     volumes:
+      - ./nginx/pliservice.ru.crt:/etc/ssl/pliservice.ru.crt
+      - ./nginx/pliservice.ru.key:/etc/ssl/pliservice.ru.key
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # Подключаем конфигурационный файл Nginx
     networks:
       - backend

@@ -3,6 +3,8 @@ static/secret_key.txt
 areas.txt
 *.db
 *.pyc
+*.crt
+*.key
 .vscode/
 .idea/
 __pycache__/
