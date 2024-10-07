@@ -3,7 +3,7 @@ from datetime import datetime
 import psycopg2
 import hashlib
 
-def create_user(username: str, password: str, full_name: str, role: str, areaid: str='') -> None:
+def create_user(username: str, password: str, full_name: str, role: str, areaid: int=None) -> None:
     # Хеширование пароля
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
 

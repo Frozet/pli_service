@@ -1,6 +1,7 @@
 # Используем образ Python
 FROM python:3.12-slim
 
+COPY requirements.txt requirements.txt
 # Устанавливаем зависимости для wkhtmltopdf и PostgreSQL
 RUN apt-get update -y && apt-get install -y \
     python3-pip \
