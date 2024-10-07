@@ -26,5 +26,7 @@ ENV WKHTMLTOPDF_PATH=/usr/bin/wkhtmltopdf
 # Указываем порт, на котором будет работать приложение
 EXPOSE 5000
 
+CMD ["python", "createdb.py"]
+
 # Команда для запуска приложения
 CMD ["python", "app.py"]
