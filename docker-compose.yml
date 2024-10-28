@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: python app.py
+    command: bash -c "python createdb.py && python app.py"
     volumes:
       - .:/app
     ports:

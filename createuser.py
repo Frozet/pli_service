@@ -18,11 +18,17 @@ def create_user(username: str, password: str, full_name: str, role: str, areaid:
     # Создание курсора
     c = conn.cursor()
 
-    # Добавление нового пользователя
-    c.execute(
-        'INSERT INTO users (username, password, full_name, role, areaid, timestampdata) VALUES (%s, %s, %s, %s, %s, %s)', 
-        (username, hashed_password, full_name, role, areaid, user_timestampdata)
-    )
+    # Проверяем, существует ли уже username
+    c.execute('SELECT COUNT(*) FROM users WHERE username = %s', (username,))
+    count = c.fetchone()[0]
+
+    if count == 0:
+        # Если такого username нет, вставляем запись
+        c.execute(
+            'INSERT INTO users (username, password, full_name, role, areaid, timestampdata) VALUES (%s, %s, %s, %s, %s, %s)', 
+            (username, hashed_password, full_name, role, areaid, user_timestampdata)
+        )
+
     # Сохранение изменений и закрытие соединения с базой данных
     conn.commit()
     conn.close()
