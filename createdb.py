@@ -6,9 +6,9 @@ from createuser import create_user
 # Подключение к базе данных PostgreSQL
 conn = psycopg2.connect(
     host=os.getenv('POSTGRES_HOST'),
-    database=os.getenv('POSTGRES_DB'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD')
+    database='pli_service',
+    user='pli_admin',
+    password='pli_admin'
 )
 
 # Создание курсора
