@@ -9,7 +9,7 @@ def generate_diagnostic_plot(diagnostic: dict) -> io.BytesIO:
     wells = diagnostic['count_of_well'].split(',')
     if diagnostic['problems_distances']:
         problems_distances = list(map(float, diagnostic['problems_distances'].split(',')))
-    total_distance = float(diagnostic['distance'])
+    total_distance = float(sum(distances))
     if len(slopes) < 3:
         plot_len = 4
     else:
@@ -53,7 +53,7 @@ def generate_diagnostic_plot(diagnostic: dict) -> io.BytesIO:
         if i + 1 != len(wells) - 1: # Рисуем колодец, если он не последний
             if well_l != wells[i+2]: # Рисуем колодец, только если он не дублируется
                 ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
-                ax.text(-0.3, current_distance, f'{diagnostic["type"]} {well_l}', va='center', fontsize=10, zorder=4)
+                ax.text(-0.4, current_distance, f'{diagnostic["type"]} {well_l}', va='center', fontsize=10, zorder=4)
         i += 2
 
     # Рисуем последний колодец
