@@ -165,6 +165,7 @@ def format_diagnostic_data(diagnostic: dict) -> tuple:
         problem_details = list(zip(problems, distances))  # Создание списка кортежей (проблема, расстояние)
     else:
         problem_details = []
+
     # Подготовка даты
     date_of_diagnostic = diagnostic['date'].split('-')
     format_date = date_of_diagnostic[2] + '.' + date_of_diagnostic[1] + '.' +  date_of_diagnostic[0] # Форматирование в удобный формат
@@ -231,7 +232,7 @@ def data_from_add_to_db(request) -> tuple:
     diagnostic_slopes = ','.join(diagnostic_slopes)
     diagnostic_flows = ','.join(diagnostic_flows)
     if diagnostic_problems: # Если проблема указана, записываем
-        diagnostic_problems = ','.join(diagnostic_problems)
+        diagnostic_problems = ';'.join(diagnostic_problems) # ";", так как запятые могут быть в тексте
     else: # Иначе пустое поле
         diagnostic_problems = ''
     if diagnostic_problem_distances:

@@ -136,8 +136,7 @@
         <strong>Диагностика проведена:</strong>
         <p>
             {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
-                {% if not loop.first %}, {% endif %}
-                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до <span class="highlight"> {{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>
+                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до <span class="highlight"> {{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>{% if not loop.last %},{% endif %}
             {% endfor %}
         </p>
     </div>
@@ -146,12 +145,11 @@
         <strong>Обнаружено:</strong>
         <p>
             {% if problem_details %}
-                {% for problem, distance in problem_details %}
-                    {% if not loop.first %}, {% endif %}
-                    {{ problem }} на расстоянии {{ distance }} м
-                {% endfor %}
+              {% for problem, distance in problem_details %}
+                {{ problem }} на расстоянии {{ distance }} м
+              {% endfor %}
             {% else %}
-                Проблем не обнаружено
+              Проблем не обнаружено
             {% endif %}
         </p>
     </div>

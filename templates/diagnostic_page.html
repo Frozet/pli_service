@@ -82,13 +82,13 @@
               <li><strong>Обнаружено:</strong>
                 {% if problem_details %}
                   {% for problem, distance in problem_details %}
-                    {% if not loop.first %}, {% endif %}
-                    {{ problem }} на расстоянии {{ distance }} м
+                    {{ problem }} на расстоянии {{ distance }} м{% if not loop.last %},{% endif %}
                   {% endfor %}
                 {% else %}
                   Проблем не обнаружено
                 {% endif %}
               </li>
+              
               <li><strong>Автор:</strong> {{ diagnostic['author'] }}</li>
             </ul>
             {% if photos_paths %}
