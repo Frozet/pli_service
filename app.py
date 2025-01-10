@@ -310,7 +310,7 @@ def user_panel():
 
     return render_template('user_panel.html')
 
-# Добавление или изменение диагностики
+# Добавление диагностики
 @app.route('/add_diagnostic/<int:diagnostic_id>', methods=['GET', 'POST'])
 def add_diagnostic(diagnostic_id):
     # Добавлять диагностики возможно только редактору или админу
@@ -321,33 +321,56 @@ def add_diagnostic(diagnostic_id):
         return redirect(url_for('user_login'))
     
     areas = get_areas()
-    # Если редактирование существующей диагностики
-    if diagnostic_id:
-        edit_mode = True
-        diagnostic = get_diagnostic_detail(diagnostic_id)
+    
+    user_name = session['username']
+    yandex_api_key = get_yandex_api_key()
+    return render_template(
+        'add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=0, photo_count=0, 
+        photo_path=[], areas=areas, slope_graph_count=0, slope_graph_path=[]
+        )
+    
+# Изменение диагностики
+@app.route('/change_diagnostic/<int:diagnostic_id>', methods=['GET', 'POST'])
+def change_diagnostic(diagnostic_id):
+    # Добавлять диагностики возможно только редактору или админу
+    if session['role'] == 'Viewer':
+        return redirect(url_for('index'))
+
+    if 'user_id' not in session:
+        return redirect(url_for('user_login'))
+    
+    areas = get_areas()
+
+    diagnostic = get_diagnostic_detail(diagnostic_id)
+
+    diagnostic['count_of_well'] = diagnostic['count_of_well'].split(',')
+    diagnostic['distance_between_wells'] = diagnostic['distance_between_wells'].split(',')
+    diagnostic['slope_between_wells'] = diagnostic['slope_between_wells'].split(',')
+    diagnostic['flow'] = diagnostic['flow'].split(',')
+    diagnostic['problems'] = diagnostic['problems'].split(';')
+    diagnostic['problems_distances'] = diagnostic['problems_distances'].split(',')
         
-        # Получение фотографий
-        if diagnostic['photo_path']:
-            photo_count = len(diagnostic['photo_path'].split(','))
-            photo_path = diagnostic['photo_path'].split(',')
-        else:
-            photo_count = 0
-            photo_path = []
-        # Получение графиков
-        if diagnostic['slope_graph_path']:
-            slope_graph_count = len(diagnostic['slope_graph_path'].split(','))
-            slope_graph_path = diagnostic['slope_graph_path'].split(',')
-        else:
-            slope_graph_count = 0
-            slope_graph_path = []
-        user_name = session['username']
-        yandex_api_key = get_yandex_api_key()
-        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, diagnostic=diagnostic, photo_count=photo_count, photo_path=photo_path, areas=areas, slope_graph_count=slope_graph_count, slope_graph_path=slope_graph_path, edit_mode=edit_mode)
+    # Получение фотографий
+    if diagnostic['photo_path']:
+        photo_count = len(diagnostic['photo_path'].split(','))
+        photo_path = diagnostic['photo_path'].split(',')
     else:
-        edit_mode = False
-        user_name = session['username']
-        yandex_api_key = get_yandex_api_key()
-        return render_template('add_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=0, photo_count=0, photo_path=[], areas=areas, slope_graph_count=0, slope_graph_path=[], edit_mode=edit_mode)
+        photo_count = 0
+        photo_path = []
+    # Получение графиков
+    if diagnostic['slope_graph_path']:
+        slope_graph_count = len(diagnostic['slope_graph_path'].split(','))
+        slope_graph_path = diagnostic['slope_graph_path'].split(',')
+    else:
+        slope_graph_count = 0
+        slope_graph_path = []
+    user_name = session['username']
+    yandex_api_key = get_yandex_api_key()
+    return render_template(
+        'change_panel.html', user_name=user_name, yandex_api_key=yandex_api_key, diagnostic_id=diagnostic_id, 
+        diagnostic=diagnostic, photo_count=photo_count, photo_path=photo_path, areas=areas, 
+        slope_graph_count=slope_graph_count, slope_graph_path=slope_graph_path,
+        )
 
 # Страница успешного изменения диагностики
 @app.route('/edit_form/<int:diagnostic_id>', methods=['GET', 'POST'])

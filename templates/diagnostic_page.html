@@ -53,7 +53,7 @@
                 <button class="btn btn-secondary">Загрузить отчет</button>
               </a>
               {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                <a href="{{ url_for('add_diagnostic', diagnostic_id=diagnostic['id']) }}">
+                <a href="{{ url_for('change_diagnostic', diagnostic_id=diagnostic['id']) }}">
                   <button class="btn btn-secondary">Изменить</button>
                 </a>
                 <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>

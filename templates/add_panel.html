@@ -39,98 +39,94 @@
         <div class="main-content">
             <!-- Левая половина - блоки формы -->
             <div class="form-content">
-                {% if edit_mode %}
-                    <h2>Изменение диагностики {{ diagnostic['short_title'] }}</h2>
-                {% else %}
                     <h2>Добавление новой диагностики</h2>
-                {% endif %}
 
-                <form id="diagnosticForm" action="{{ url_for('edit_diagnostic', diagnostic_id=diagnostic['id']) if edit_mode else '/submit_form' }}" method="post" enctype="multipart/form-data">
+                <form id="diagnosticForm" action="/submit_form" method="post" enctype="multipart/form-data">
                     <!-- Первый блок -->
                     <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h3>Общая информация</h3>
                         <div>
                             <label for="name" class="form-label">Название</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ diagnostic['short_title'] if edit_mode else '' }}" required>
+                            <input type="text" class="form-control" id="name" name="name" value="" required>
                         </div>
                         <div>
                             <label for="name" class="form-label">Адрес</label>
-                            <input type="text" class="form-control" id="address" name="address" value="{{ diagnostic['address'] if edit_mode else '' }}" required>
+                            <input type="text" class="form-control" id="address" name="address" value="" required>
                         </div>
                         <div>
-                            <label for="area" class="form-label">Мастер участка</label>
+                            <label for="area" class="form-label">Участок</label>
                             <select class="form-select" id="areaid" name="areaid" required>
                                 {% for area in areas %}
-                                    <option value="{{ area['id'] }}" {% if edit_mode and diagnostic['areaid'] == area['id'] %} selected {% endif %}>{{ area['name'] }}.</option>
+                                    <option value="{{ area['id'] }}">{{ area['name'] }}.</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div>
                             <label for="type" class="form-label">Тип трубопровода</label>
                             <select class="form-select" id="type" name="type" required>
-                                <option value="КК" {% if edit_mode and diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>
-                                <option value="ВК" {% if edit_mode and diagnostic['type'] == 'ВК' %} selected {% endif %}>ВК</option>
-                                <option value="К" {% if edit_mode and diagnostic['type'] == 'К' %} selected {% endif %}>Другое</option>
+                                <option value="КК">КК</option>
+                                <option value="ВК">ВК</option>
+                                <option value="К">Другое</option>
                             </select>
                         </div>
                         <div>
                             <label for="type" class="form-label">Тип диагностики</label>
                             <select class="form-select" id="diagnostic_type" name="diagnostic_type" required>
-                                <option value="Приемка" {% if edit_mode and diagnostic['diagnostic_type'] == 'Приемка' %} selected {% endif %}>Приемка</option>
-                                <option value="Повреждение" {% if edit_mode and diagnostic['diagnostic_type'] == 'Повреждение' %} selected {% endif %}>Повреждение трубы</option>
-                                <option value="Без повреждений" {% if edit_mode and diagnostic['diagnostic_type'] == 'Без повреждений' %} selected {% endif %}>Без повреждений</option>
-                                <option value="Найден колодец" {% if edit_mode and diagnostic['diagnostic_type'] == 'Найден колодец' %} selected {% endif %}>Найден колодец</option>
+                                <option value="Приемка">Приемка</option>
+                                <option value="Повреждение">Повреждение трубы</option>
+                                <option value="Без повреждений">Без повреждений</option>
+                                <option value="Найден колодец">Найден колодец</option>
                             </select>
                         </div>
                         <div>
                             <label for="date" class="form-label">Дата</label>
-                            <input type="date" class="form-control" id="date" name="date" value="{{ diagnostic['date'] if edit_mode else '' }}" required>
+                            <input type="date" class="form-control" id="date" name="date" value="" required>
                         </div>
                         <div>
                             <label for="diameter" class="form-label">Диаметр, мм</label>
-                            <input type="number" class="form-control" id="diameter" name="diameter" value="{{ diagnostic['diameter'] if edit_mode else '' }}" required>
+                            <input type="number" class="form-control" id="diameter" name="diameter" value="" required>
                         </div>
                         <div>
                             <label for="material" class="form-label">Материал</label>
                             <select class="form-select" id="material" name="material" required>
-                                <option value="Пластик" {% if edit_mode and diagnostic['material'] == 'Пластик' %} selected {% endif %}>Пластик</option>
-                                <option value="Бетон" {% if edit_mode and diagnostic['material'] == 'Бетон' %} selected {% endif %}>Бетон</option>
-                                <option value="Кирпичная кладка" {% if edit_mode and diagnostic['material'] == 'Кирпичная кладка' %} selected {% endif %}>Кирпичная кладка</option>
-                                <option value="Керамика" {% if edit_mode and diagnostic['material'] == 'Керамика' %} selected {% endif %}>Керамика</option>
-                                <option value="Сталь" {% if edit_mode and diagnostic['material'] == 'Сталь' %} selected {% endif %}>Сталь</option>
-                                <option value="Чугун" {% if edit_mode and diagnostic['material'] == 'Чугун' %} selected {% endif %}>Чугун</option>
+                                <option value="Пластик">Пластик</option>
+                                <option value="Бетон">Бетон</option>
+                                <option value="Кирпичная кладка">Кирпичная кладка</option>
+                                <option value="Керамика">Керамика</option>
+                                <option value="Сталь">Сталь</option>
+                                <option value="Чугун">Чугун</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="distance" class="form-label">Расстояние, м</label>
-                            <input type="number" class="form-control" id="distance" name="distance" value="{{ diagnostic['distance'] if edit_mode else '' }}" required>
+                            <input type="number" class="form-control" id="distance" name="distance" value="" required>
                         </div>
                     </div>
 
-                    <!-- Второй блок -->
                     <div class="form-section flex-wrap flex-md-nowrap align-items-center pb-2 border-bottom">
-                        <h3>Детали пролета</h3>
+                        <h3>Детали пролетов</h3>
+                        <h5>Пролет 1</h5>
                         <div id="spanSection">
                             <div class="sub-section span-group">
-                                <div class="mb-3">
+                                <div class="mb-1">
                                     <label for="well1" class="form-label">Из колодца</label>
-                                    <input type="text" class="form-control" name="well_0" value="{{ diagnostic['count_of_well'] if edit_mode else '' }}" required>
+                                    <input type="text" class="form-control" name="well_0" required>
                                 </div>
                                 <div class="d-flex">
-                                    <div class="mb-3 me-2">
+                                    <div class="mb-1 me-2">
                                         <label for="span" class="form-label">Пролет, м</label>
-                                        <input type="number" class="form-control" name="span_0" value="{{ diagnostic['distance_between_wells'] if edit_mode else '' }}" required>
+                                        <input type="number" class="form-control" name="span_0" required>
                                     </div>
-                                    <div class="mb-3 me-2">
+                                    <div class="mb-1 me-2">
                                         <label for="slope" class="form-label">Уклон</label>
-                                        <select class="form-select" name="slope_0" required>
-                                            <option value="отличный" {% if edit_mode and diagnostic['slope_between_wells'] == 'отличный' %} selected {% endif %}>Отличный</option>
-                                            <option value="в норме" {% if edit_mode and diagnostic['slope_between_wells'] == 'в норме' %} selected {% endif %}>В норме</option>
-                                            <option value="в горизонте" {% if edit_mode and diagnostic['slope_between_wells'] == 'в горизонте' %} selected {% endif %}>В горизонте</option>
-                                            <option value="в контруклоне" {% if edit_mode and diagnostic['slope_between_wells'] == 'в контруклоне' %} selected {% endif %}>Контруклон</option>
+                                        <select class="form-select" name="slope__0" required>
+                                            <option value="отличный">Отличный</option>
+                                            <option value="в норме">В норме</option>
+                                            <option value="в горизонте">В горизонте</option>
+                                            <option value="в контруклоне">Контруклон</option>
                                         </select>
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-1">
                                         <label for="flow" class="form-label">Течение</label>
                                         <select class="form-select" name="flow_0" required>
                                             <option value="против течения">⬆</option>
@@ -142,33 +138,27 @@
                                     <label for="well2" class="form-label">В колодец</label>
                                     <input type="text" class="form-control" name="well2_0" required>
                                 </div>
+                                
+                                <!-- Блок проблем внутри пролета -->
+                                <div id="problemSection_0">
+                                    <div class="sub-section problem-group">
+                                        <div class="mb-1">
+                                            <label for="problem" class="form-label">Проблема</label>
+                                            <textarea class="form-control" name="problem_0_0" rows="2"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
+                                            <input type="number" class="form-control" name="realproblemDistance_0_0">
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-warning mt-2" onclick="addProblemSection(0)">Добавить проблему</button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-secondary" onclick="addSpanSection()">Добавить пролет</button>
-                    </div>
-
-                    <!-- Третий блок -->
-                    <div class="form-section flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h3>Детали проблемы</h3>
-                        <div id="problemSection">
-                            <div class="sub-section problem-group">
-                                <div class="mb-3">
-                                    <label for="problem" class="form-label">Проблема</label>
-                                    <textarea class="form-control" name="problem_0">{{ diagnostic['problems'] if edit_mode else '' }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
-                                    <input type="number" class="form-control" name="problemDistance_0" value="{{ diagnostic['problems_distances'] if edit_mode else '' }}">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="button" class="btn btn-secondary" onclick="addProblemSection()">Добавить проблему</button>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="addSpanSection()">Добавить пролет</button>
                     </div>
                     <div class="mb-3">
-                        {% if edit_mode %}
-                            Загружено {{ photo_count }} фотографий<br>
-                        {% endif %}
                         {% if photo_path %}
                             {% for photo in photo_path %}
                                 <div class="photo-item">
@@ -181,9 +171,6 @@
                         <input type="file" id="photos" name="photos" multiple>
                     </div>
                     <div class="mb-3">
-                        {% if edit_mode %}
-                            Загружено {{ slope_graph_count }} графиков<br>
-                        {% endif %}
                         {% if slope_graph_path %}
                             {% for slope_graph in slope_graph_path %}
                                 <div class="slope_graph-item">
@@ -197,7 +184,7 @@
                     </div>
                     
                     <div class="form-group mt-3">
-                        <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] if edit_mode else '' }}" required>
+                        <input type="hidden" name="coordinates" id="coordinates" value="" required>
                     </div>
 
                     <!-- Отправка формы -->
@@ -213,68 +200,171 @@
         </div>
 
         <script>
-            let spanIndex = 1; // Для отслеживания уникальности индексов пролета
-            let problemIndex = 1; // Для отслеживания уникальности индексов проблем
 
-            // JavaScript для добавления новых секций пролета
+            let spanIndex = 1; // Индекс для добавляемых пролетов (начинается с 1, так как 0 уже на странице)
+            const problemIndices = { 0: 1 }; // Инициализация для проблем (0-й пролет уже есть)
+            const spans = { 0: 0 }; // Хранение длины пролетов (0-й пролет уже есть)
+
+            // Функция для инициализации начального пролета при загрузке страницы
+            function initializeFirstSpan() {
+                const firstSpanInput = document.querySelector('input[name="span_0"]');
+                if (firstSpanInput) {
+                    spans[0] = parseFloat(firstSpanInput.value) || 0;
+
+                    // Добавление обработчика на изменение длины первого пролета
+                    firstSpanInput.addEventListener('input', function () {
+                        updateSpanLength(0, this.value);
+                    });
+
+                    // Добавление обработчиков для проблем в первом пролете
+                    const firstProblemInput = document.querySelector('input[name="problemDistance_0_0"]');
+                    if (firstProblemInput) {
+                        firstProblemInput.addEventListener('input', function () {
+                            updateRealProblemDistance(0, 0);
+                        });
+                    }
+                }
+            }
+
+            // Обновление длины пролета
+            function updateSpanLength(spanId, value) {
+                spans[spanId] = parseFloat(value) || 0;
+
+                // Обновление расстояний для всех проблем в этом пролете
+                const problemCount = problemIndices[spanId];
+                for (let i = 0; i < problemCount; i++) {
+                    updateRealProblemDistance(spanId, i);
+                }
+            }
+
+            // Обновление значения realproblemDistance
+            function updateRealProblemDistance(spanId, problemIndex) {
+                let cumulativeDistance = 0;
+
+                // Суммирование длин всех предыдущих пролетов
+                for (let i = 0; i < spanId; i++) {
+                    cumulativeDistance += spans[i] || 0;
+                }
+
+                // Получение текущего расстояния до проблемы
+                const problemDistanceInput = document.querySelector(`input[name="problemDistance_${spanId}_${problemIndex}"]`);
+                const realProblemDistanceInput = document.getElementById(`realproblemDistance_${spanId}_${problemIndex}`);
+                const problemDistance = parseFloat(problemDistanceInput?.value) || 0;
+
+                if (realProblemDistanceInput) {
+                    realProblemDistanceInput.value = cumulativeDistance + problemDistance;
+                }
+            }
+
+            // Добавление нового пролета
             function addSpanSection() {
-                          const spanSection = document.getElementById('spanSection');
-                          const newSpan = document.createElement('div');
-                          newSpan.classList.add('sub-section', 'span-group');
-                          newSpan.innerHTML = `
-                              <div class="mb-3">
-                                  <label for="well1" class="form-label">Из колодца</label>
-                                  <input type="text" class="form-control" name="well_${spanIndex}" required>
-                              </div>
-                              <div class="d-flex">
-                                <div class="mb-3 me-2">
-                                    <label for="span" class="form-label">Пролет, м</label>
-                                    <input type="number" class="form-control" name="span_${spanIndex}" required>
-                                </div>
-                                <div class="mb-3 me-2">
-                                    <label for="slope" class="form-label">Уклон</label>
-                                    <select class="form-select" name="slope_${spanIndex}" required>
-                                        <option value="отличный">Отличный</option>
-                                        <option value="в норме">В норме</option>
-                                        <option value="в горизонте">В горизонте</option>
-                                        <option value="в контруклоне">Контруклон</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3 me-2">
-                                    <label for="flow" class="form-label">Течение</label>
-                                    <select class="form-select" name="flow_${spanIndex}" required>
-                                        <option value="против течения">⬆</option>
-                                        <option value="по течению">⬇</option>
-                                    </select>
-                                </div>
-                              </div>
-                              <div class="mb-3">
-                                  <label for="well2" class="form-label">В колодец</label>
-                                  <input type="text" class="form-control" name="well2_${spanIndex}" required>
-                              </div>
-                          `;
-                          spanSection.appendChild(newSpan);
-                          spanIndex++;
-              }
-      
-            // JavaScript для добавления новых секций проблемы
-            function addProblemSection() {
-                          const problemSection = document.getElementById('problemSection');
-                          const newProblem = document.createElement('div');
-                          newProblem.classList.add('sub-section', 'problem-group');
-                          newProblem.innerHTML = `
-                              <div class="mb-3">
-                                  <label for="problem" class="form-label">Проблема</label>
-                                  <textarea class="form-control" name="problem_${problemIndex}" rows="2"></textarea>
-                              </div>
-                              <div class="mb-3"> 
-                                  <label for="problemDistance" class="form-label">Расстояние до проблемы</label>
-                                  <input type="number" class="form-control" name="problemDistance_${problemIndex}">
-                              </div>
-                          `;
-                          problemSection.appendChild(newProblem);
-                          problemIndex++;
-              }
+                const spanSection = document.getElementById('spanSection');
+                const newSpan = document.createElement('div');
+                newSpan.classList.add('sub-section', 'span-group');
+                newSpan.id = `span_${spanIndex}`; // Уникальный ID для пролета
+
+                newSpan.innerHTML = `
+                    <h5 class="mt-3">Пролет ${spanIndex + 1}</h5>
+                    <div class="mb-3">
+                        <label for="well1" class="form-label">Из колодца</label>
+                        <input type="text" class="form-control" name="well_${spanIndex}" required>
+                    </div>
+                    <div class="d-flex">
+                        <div class="mb-3 me-2">
+                            <label for="span" class="form-label">Пролет, м</label>
+                            <input type="number" class="form-control" name="span_${spanIndex}" oninput="updateSpanLength(${spanIndex}, this.value)" required>
+                        </div>
+                        <div class="mb-3 me-2">
+                            <label for="slope" class="form-label">Уклон</label>
+                            <select class="form-select" name="slope__${spanIndex}" required>
+                                <option value="отличный">Отличный</option>
+                                <option value="в норме">В норме</option>
+                                <option value="в горизонте">В горизонте</option>
+                                <option value="в контруклоне">Контруклон</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 me-2">
+                            <label for="flow" class="form-label">Течение</label>
+                            <select class="form-select" name="flow_${spanIndex}" required>
+                                <option value="против течения">⬆</option>
+                                <option value="по течению">⬇</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="well2" class="form-label">В колодец</label>
+                        <input type="text" class="form-control" name="well2_${spanIndex}" required>
+                    </div>
+                    <div id="problemSection_${spanIndex}">
+                        <div class="sub-section problem-group">
+                            <div class="mb-3">
+                                <label for="problem" class="form-label">Проблема</label>
+                                <textarea class="form-control" name="problem_${spanIndex}_0" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
+                                <input type="number" class="form-control" name="problemDistance_${spanIndex}_0" oninput="updateRealProblemDistance(${spanIndex}, 0)">
+                                <input type="hidden" class="form-control" name="realproblemDistance_${spanIndex}_0" id="realproblemDistance_${spanIndex}_0">
+                            </div>
+                            <button type="button" class="btn btn-danger" onclick="removeProblem(${spanIndex}, 0)">Удалить проблему</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-warning mt-2" onclick="addProblemSection(${spanIndex})">Добавить проблему</button>
+                    <button type="button" class="btn btn-danger mt-2" onclick="removeSpan(${spanIndex})">Удалить пролет</button>
+                `;
+                
+                spanSection.appendChild(newSpan);
+                problemIndices[spanIndex] = 1; // Инициализация индекса для проблем
+                spans[spanIndex] = 0; // Установка длины пролета
+                spanIndex++;
+            }
+
+            // Добавление новой проблемы в текущий пролет
+            function addProblemSection(spanId) {
+                const problemSection = document.getElementById(`problemSection_${spanId}`);
+                const problemIndex = problemIndices[spanId];
+                const newProblem = document.createElement('div');
+                newProblem.classList.add('sub-section', 'problem-group');
+                newProblem.innerHTML = `
+                    <div class="mb-3">
+                        <label for="problem" class="form-label">Проблема</label>
+                        <textarea class="form-control" name="problem_${spanId}_${problemIndex}" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="problemDistance" class="form-label">Расстояние до проблемы, м</label>
+                        <input type="number" class="form-control" name="problemDistance_${spanId}_${problemIndex}" oninput="updateRealProblemDistance(${spanId}, ${problemIndex})">
+                        <input type="hidden" class="form-control" name="realproblemDistance_${spanId}_${problemIndex}" id="realproblemDistance_${spanId}_${problemIndex}">
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="removeProblem(${spanId}, ${problemIndex})">Удалить проблему</button>
+                `;
+                problemSection.appendChild(newProblem);
+                problemIndices[spanId]++;
+            }
+
+            // Удаление проблемы
+            function removeProblem(spanId, problemIndex) {
+                const problemGroup = document.querySelector(`#problemSection_${spanId} .problem-group:nth-of-type(${problemIndex + 1})`);
+                if (problemGroup) {
+                    problemGroup.remove();
+                    problemIndices[spanId]--;
+                }
+            }
+
+            // Удаление пролета
+            function removeSpan(spanId) {
+                const spanGroup = document.getElementById(`span_${spanId}`); // Используем ID для удаления
+                if (spanGroup) {
+                    spanGroup.remove();
+                    delete spans[spanId];
+                    delete problemIndices[spanId];
+                }
+            }
+
+            // Инициализация при загрузке страницы
+            document.addEventListener('DOMContentLoaded', initializeFirstSpan);
+
+            
+
             
             var photosToDelete = [];
             function removePhoto(photo) {
@@ -317,7 +407,7 @@
       ymaps.ready(init);
         function init(){
             var myMap = new ymaps.Map("map", {
-                center: [{{ diagnostic['coordinates'] if edit_mode else '52.27,104.31' }}],
+                center: [52.27,104.31],
                 zoom: 13,
             });
 

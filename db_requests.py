@@ -217,13 +217,13 @@ def data_from_add_to_db(request) -> tuple:
             diagnostic_wells.append(request.form[key])
         elif key.startswith('span_'):
             diagnostic_spans.append(request.form[key])
-        elif key.startswith('slope_'):
+        elif key.startswith('slope__'):
             diagnostic_slopes.append(request.form[key])
         elif key.startswith('flow_'):
             diagnostic_flows.append(request.form[key])
         elif key.startswith('problem_'):
             diagnostic_problems.append(request.form[key])
-        elif key.startswith('problemDistance_'):
+        elif key.startswith('realproblemDistance_'):
             diagnostic_problem_distances.append(request.form[key])
 
     # Преобразование списков в строки для хранения в БД

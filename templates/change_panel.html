@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+    {% block title %}Изменение диагностики{% endblock %}
+
+      {% block style %}
+      .main-content {
+        display: flex;
+        margin: 0;
+        margin-left: 5%;
+        margin-right: 5%;
+        margin-top: 10px;
+        margin-bottom: 30px;
+      }
+
+      .form-content {
+        width: 50%;
+        padding-right: 20px;
+      }
+
+      .map-content {
+        width: 50%;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: left;
+      }
+
+      #map {
+        width: 100%;
+        height: 600px;
+      }
+      .img-size {
+        width: 30%;
+        height: auto; /* Сохраняет пропорции изображения */
+        margin-bottom: 10px; /* Добавляет отступ между изображениями, если их несколько */
+      }
+      {% endblock %}
+
+        {% block content %}
+        <div class="main-content">
+            <!-- Левая половина - блоки формы -->
+            <div class="form-content">
+                <h2>Изменение диагностики {{ diagnostic['short_title'] }}</h2>
+
+                <form id="diagnosticForm" action="{{ url_for('edit_diagnostic', diagnostic_id=diagnostic['id']) }}" method="post" enctype="multipart/form-data">
+                    <!-- Первый блок -->
+                    <div class="form-section justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h3>Общая информация</h3>
+                        <div>
+                            <label for="name" class="form-label">Название</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ diagnostic['short_title'] }}" required>
+                        </div>
+                        <div>
+                            <label for="name" class="form-label">Адрес</label>
+                            <input type="text" class="form-control" id="address" name="address" value="{{ diagnostic['address'] }}" required>
+                        </div>
+                        <div>
+                            <label for="area" class="form-label">Участок</label>
+                            <select class="form-select" id="areaid" name="areaid" required>
+                                {% for area in areas %}
+                                    <option value="{{ area['id'] }}" {% if diagnostic['areaid'] == area['id'] %} selected {% endif %}>{{ area['name'] }}.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="type" class="form-label">Тип трубопровода</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="КК" {% if diagnostic['type'] == 'КК' %} selected {% endif %}>КК</option>
+                                <option value="ВК" {% if diagnostic['type'] == 'ВК' %} selected {% endif %}>ВК</option>
+                                <option value="К" {% if diagnostic['type'] == 'К' %} selected {% endif %}>Другое</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="type" class="form-label">Тип диагностики</label>
+                            <select class="form-select" id="diagnostic_type" name="diagnostic_type" required>
+                                <option value="Приемка" {% if diagnostic['diagnostic_type'] == 'Приемка' %} selected {% endif %}>Приемка</option>
+                                <option value="Повреждение" {% if diagnostic['diagnostic_type'] == 'Повреждение' %} selected {% endif %}>Повреждение трубы</option>
+                                <option value="Без повреждений" {% if diagnostic['diagnostic_type'] == 'Без повреждений' %} selected {% endif %}>Без повреждений</option>
+                                <option value="Найден колодец" {% if diagnostic['diagnostic_type'] == 'Найден колодец' %} selected {% endif %}>Найден колодец</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="date" class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ diagnostic['date'] }}" required>
+                        </div>
+                        <div>
+                            <label for="diameter" class="form-label">Диаметр, мм</label>
+                            <input type="number" class="form-control" id="diameter" name="diameter" value="{{ diagnostic['diameter'] }}" required>
+                        </div>
+                        <div>
+                            <label for="material" class="form-label">Материал</label>
+                            <select class="form-select" id="material" name="material" required>
+                                <option value="Пластик" {% if diagnostic['material'] == 'Пластик' %} selected {% endif %}>Пластик</option>
+                                <option value="Бетон" {% if diagnostic['material'] == 'Бетон' %} selected {% endif %}>Бетон</option>
+                                <option value="Кирпичная кладка" {% if diagnostic['material'] == 'Кирпичная кладка' %} selected {% endif %}>Кирпичная кладка</option>
+                                <option value="Керамика" {% if diagnostic['material'] == 'Керамика' %} selected {% endif %}>Керамика</option>
+                                <option value="Сталь" {% if diagnostic['material'] == 'Сталь' %} selected {% endif %}>Сталь</option>
+                                <option value="Чугун" {% if diagnostic['material'] == 'Чугун' %} selected {% endif %}>Чугун</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="distance" class="form-label">Расстояние, м</label>
+                            <input type="number" class="form-control" id="distance" name="distance" value="{{ diagnostic['distance'] }}" required>
+                        </div>
+                    </div>
+
+                    <div id="spanSection"></div>
+                    <hr>
+                    <div id="problemSection"></div>
+
+                    <div class="mb-3">
+                        Загружено {{ photo_count }} фотографий<br>
+                        {% if photo_path %}
+                            {% for photo in photo_path %}
+                                <div class="photo-item">
+                                    <img src="{{ url_for('static', filename=photo) }}" alt="Фото диагностики" class="img-size">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removePhoto('{{ photo }}')">Удалить</button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <label for="photos">Загрузить фотографии (по одной на проблему):</label>
+                        <input type="file" id="photos" name="photos" multiple>
+                    </div>
+                    <div class="mb-3">
+                        Загружено {{ slope_graph_count }} графиков<br>
+                        {% if slope_graph_path %}
+                            {% for slope_graph in slope_graph_path %}
+                                <div class="slope_graph-item">
+                                    <input type="text" class="form-control" value="{{ slope_graph }}" readonly>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSlopeGraph('{{ slope_graph }}')">Удалить</button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <label for="slope_graph">Загрузить графики уклона:</label>
+                        <input type="file" id="slope_graph" name="slope_graph" multiple>
+                    </div>
+                    
+                    <div class="form-group mt-3">
+                        <input type="hidden" name="coordinates" id="coordinates" value="{{ diagnostic['coordinates'] }}" required>
+                    </div>
+
+                    <!-- Отправка формы -->
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+
+            <!-- Правая половина - карта -->
+            <div class="map-content">
+                <h3>Карта</h3>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <script>
+            const diagnostic = {{ diagnostic|tojson }};
+            let spanIndex = 1; // Индекс для добавляемых пролетов (начинается с 1, так как 0 уже на странице)
+            const problemIndices = { 0: 1 }; // Инициализация для проблем (0-й пролет уже есть)
+            const spans = { 0: 0 }; // Хранение длины пролетов (0-й пролет уже есть)
+
+            // Обновление длины пролета
+            function updateSpanLength(spanId, value) {
+                spans[spanId] = parseFloat(value) || 0;
+
+                // Обновление расстояний для всех проблем в этом пролете
+                const problemCount = problemIndices[spanId];
+                for (let i = 0; i < problemCount; i++) {
+                    updateRealProblemDistance(spanId, i);
+                }
+            }
+
+            // Обновление значения realproblemDistance
+            function updateRealProblemDistance(spanId, problemIndex) {
+                let cumulativeDistance = 0;
+
+                // Суммирование длин всех предыдущих пролетов
+                for (let i = 0; i < spanId; i++) {
+                    cumulativeDistance += spans[i] || 0;
+                }
+
+                // Получение текущего расстояния до проблемы
+                const problemDistanceInput = document.querySelector(`input[name="problemDistance_${spanId}_${problemIndex}"]`);
+                const realProblemDistanceInput = document.getElementById(`realproblemDistance_${spanId}_${problemIndex}`);
+                const problemDistance = parseFloat(problemDistanceInput?.value) || 0;
+
+                if (realProblemDistanceInput) {
+                    realProblemDistanceInput.value = cumulativeDistance + problemDistance;
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                populateDiagnostics(diagnostic);
+
+                // Кнопка для добавления пролёта
+                const addSpanButton = document.createElement("button");
+                addSpanButton.textContent = "Добавить пролет";
+                addSpanButton.classList.add("btn", "btn-secondary", "mt-2");
+                addSpanButton.type = "button";
+                addSpanButton.onclick = () => addSpan();
+                document.getElementById("spanSection").after(addSpanButton);
+
+                // Кнопка для добавления проблемы
+                const addProblemButton = document.createElement("button");
+                addProblemButton.textContent = "Добавить проблему";
+                addProblemButton.classList.add("btn", "btn-secondary", "mt-2");
+                addProblemButton.type = "button";
+                addProblemButton.onclick = () => addProblem();
+                document.getElementById("problemSection").after(addProblemButton);
+            });
+
+            // Функция для заполнения данных
+            function populateDiagnostics(diagnostic) {
+                const spanSection = document.getElementById('spanSection');
+                const problemSection = document.getElementById('problemSection');
+
+                // Генерация пролётов
+                diagnostic.distance_between_wells.forEach((distance, index) => {
+                    createSpanBlock(spanSection, index, diagnostic);
+                });
+
+                // Генерация проблем
+                diagnostic.problems.forEach((problem, index) => {
+                    createProblemBlock(problemSection, index, diagnostic);
+                });
+            }
+
+            // Функция для создания блока пролёта
+            function createSpanBlock(container, index, diagnostic) {
+                const spanBlock = document.createElement('div');
+                spanBlock.classList.add('mb-2', 'border', 'p-3');
+                spanBlock.dataset.index = index;
+                spanBlock.innerHTML = `
+                    <h5>Пролет ${index + 1}</h5>
+                    <div class="mb-1">
+                        <label class="form-label">Из колодца</label>
+                        <input type="text" class="form-control" name="well_from_${index}" value="${diagnostic?.count_of_well?.[index * 2] || ''}" required>
+                    </div>
+                    <div class="d-flex">
+                        <div class="mb-1 me-2">
+                            <label class="form-label">Пролет, м</label>
+                            <input type="number" class="form-control" name="span_${index}" value="${diagnostic?.distance_between_wells?.[index] || ''}" required>
+                        </div>
+                        <div class="mb-1 me-2">
+                            <label class="form-label">Уклон</label>
+                            <select class="form-select" name="slope__${index}" required>
+                                <option value="отличный" ${diagnostic?.slope_between_wells?.[index] === "отличный" ? "selected" : ""}>Отличный</option>
+                                <option value="в норме" ${diagnostic?.slope_between_wells?.[index] === "в норме" ? "selected" : ""}>В норме</option>
+                                <option value="в горизонте" ${diagnostic?.slope_between_wells?.[index] === "в горизонте" ? "selected" : ""}>В горизонте</option>
+                                <option value="в контруклоне" ${diagnostic?.slope_between_wells?.[index] === "в контруклоне" ? "selected" : ""}>В контруклоне</option>
+                            </select>
+                        </div>
+                        <div class="mb-1 me-2">
+                            <label class="form-label">Течение</label>
+                            <select class="form-select" name="flow_${index}" required>
+                                <option value="против течения" ${diagnostic?.flow?.[index] === "против течения" ? "selected" : ""}>⬆</option>
+                                <option value="по течению" ${diagnostic?.flow?.[index] === "по течению" ? "selected" : ""}>⬇</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label">В колодец</label>
+                        <input type="text" class="form-control" name="well_to_${index}" value="${diagnostic?.count_of_well?.[index * 2 + 1] || ''}" required>
+                    </div>
+                    <button type="button" class="btn btn-danger mt-2" onclick="removeBlock(this)">Удалить пролет</button>
+                `;
+                container.appendChild(spanBlock);
+            }
+
+            // Функция для создания блока проблемы
+            function createProblemBlock(container, index, diagnostic) {
+                const problemBlock = document.createElement('div');
+                problemBlock.classList.add('mb-2', 'border', 'p-3');
+                problemBlock.dataset.index = index;
+                problemBlock.innerHTML = `
+                    <h5>Проблема ${index + 1}</h5>
+                    <div class="mb-1">
+                        <label class="form-label">Проблема</label>
+                        <textarea class="form-control" name="problem_${index}" rows="2" required>${diagnostic?.problems?.[index] || ''}</textarea>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label">Расстояние до проблемы, м</label>
+                        <input type="number" class="form-control" name="realproblemDistance_${index}" value="${diagnostic?.problems_distances?.[index] || ''}" required>
+                    </div>
+                    <button type="button" class="btn btn-danger mt-2" onclick="removeBlock(this)">Удалить проблему</button>
+                `;
+                container.appendChild(problemBlock);
+            }
+
+            // Функция для удаления блока (пролёта или проблемы)
+            function removeBlock(button) {
+                const block = button.closest('div.mb-2');
+                block.remove();
+            }
+
+            // Функция для добавления нового пролёта
+            function addSpan() {
+                const spanSection = document.getElementById('spanSection');
+                const index = spanSection.children.length;
+                createSpanBlock(spanSection, index, {});
+            }
+
+            // Функция для добавления новой проблемы
+            function addProblem() {
+                const problemSection = document.getElementById('problemSection');
+                const index = problemSection.children.length;
+                createProblemBlock(problemSection, index, {});
+            }
+
+            // Инициализация при загрузке страницы
+            // document.addEventListener('DOMContentLoaded', initializeFirstSpan);
+
+            
+
+            
+            var photosToDelete = [];
+            function removePhoto(photo) {
+                // Добавляем фото в список для удаления
+                photosToDelete.push(photo);
+                // Убираем фотографию с экрана
+                event.target.closest('.photo-item').remove();
+            }
+
+            // Передаем список фотографий для удаления в скрытое поле
+            document.querySelector('form').addEventListener('submit', function() {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'photos_to_delete';
+                input.value = photosToDelete.join(',');
+                this.appendChild(input);
+            });
+
+            var SlopeGraphToDelete = [];
+            function removeSlopeGraph(slope_graph) {
+                // Добавляем график в список для удаления
+                SlopeGraphToDelete.push(photo);
+                // Убираем график с экрана
+                event.target.closest('.slope_graph-item').remove();
+            }
+
+            // Передаем список графиков для удаления в скрытое поле
+            document.querySelector('form').addEventListener('submit', function() {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'slope_graph_to_delete';
+                input.value = SlopeGraphToDelete.join(',');
+                this.appendChild(input);
+            });
+          </script>
+        {% endblock %}
+
+    {% block script_second %}
+    <script>
+      ymaps.ready(init);
+        function init(){
+            var myMap = new ymaps.Map("map", {
+                center: [{{ diagnostic['coordinates'] }}],
+                zoom: 13,
+            });
+
+            var placemark = new ymaps.Placemark(myMap.getCenter(), {}, {
+                iconLayout: 'default#image',
+                // Своё изображение иконки метки.
+                iconImageHref: '/static/assets/mark1.png',
+                // Размеры метки.
+                iconImageSize: [35, 35],
+                iconImageOffset: [-10, -10],
+                draggable: true // Позволяет перетаскивать маркер
+            });
+
+            myMap.geoObjects.add(placemark);
+            // Обработчик события щелчка по карте
+            myMap.events.add('click', function (e) {
+                var coords = e.get('coords');
+
+                // Перемещаем маркеры по щелчку в указанные координаты
+                placemark.geometry.setCoordinates(coords);
+                // Запись координат в скрытое поле
+                document.getElementById('coordinates').value = coords.join(',');
+            });
+        }
+    </script>
+    {% endblock %}
+

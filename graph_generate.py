@@ -13,7 +13,7 @@ def generate_diagnostic_plot(diagnostic: dict) -> io.BytesIO:
     if len(slopes) < 3:
         plot_len = 4
     else:
-        plot_len = len(slopes) * 2
+        plot_len = (len(slopes) + 1) * 2
     fig, ax = plt.subplots(figsize=(3, plot_len))
 
     # Словарь для легенды
