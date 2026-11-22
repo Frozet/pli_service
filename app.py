@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
 
-from flask import Flask, abort, current_app, g, redirect, render_template, request, send_from_directory, url_for
+from flask import Flask, abort, current_app, g, render_template, request, send_from_directory
 from psycopg2 import Error as DatabaseError
 from psycopg2.pool import PoolError
 from werkzeug.exceptions import HTTPException
