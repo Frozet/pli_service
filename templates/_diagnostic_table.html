@@ -1,0 +1,72 @@
+<form method="get" class="row g-3 align-items-end mb-4">
+  <input type="hidden" name="sort_by" value="{{ filters.sort_by }}">
+  <input type="hidden" name="order" value="{{ filters.order }}">
+  <div class="col-md">
+    <label for="search_query" class="form-label">Поиск</label>
+    <input type="search" id="search_query" name="search_query" class="form-control" value="{{ filters.query }}" maxlength="200">
+  </div>
+  <div class="col-md">
+    <label for="areaFilter" class="form-label">Участок</label>
+    <select id="areaFilter" name="areaFilter" class="form-select">
+      <option value="all">{{ 'Мой участок' if account.role == 'Viewer' else 'Все участки' }}</option>
+      {% for area in areas %}
+        <option value="{{ area.id }}" {% if filters.areaid == area.id %}selected{% endif %}>{{ area.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md">
+    <label for="start_date" class="form-label">Начало периода</label>
+    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ filters.start_date or '' }}">
+  </div>
+  <div class="col-md">
+    <label for="end_date" class="form-label">Конец периода</label>
+    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ filters.end_date or '' }}">
+  </div>
+  <div class="col-md-auto"><button type="submit" class="btn btn-primary">Применить</button></div>
+</form>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th scope="col">№</th>
+        {% for key, label in columns %}
+          <th scope="col" {% if filters.sort_by == key %}aria-sort="{{ 'ascending' if filters.order == 'asc' else 'descending' }}"{% endif %}>
+            <a href="{{ table_url(sort_by=key, order='desc' if filters.sort_by == key and filters.order == 'asc' else 'asc', page=1) }}">
+              {{ label }}{% if filters.sort_by == key %} {{ '↑' if filters.order == 'asc' else '↓' }}{% endif %}
+            </a>
+          </th>
+        {% endfor %}
+        <th scope="col">Автор</th>
+        <th scope="col">Участок</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for diagnostic in diagnostics %}
+        <tr>
+          <td>{{ diagnostic.id }}</td>
+          <td><a href="{{ url_for('diagnostics.diagnostic_page', diagnostic_id=diagnostic.id) }}">{{ diagnostic.short_title }}</a></td>
+          <td>{{ diagnostic.survey_date.strftime('%d.%m.%Y') if diagnostic.survey_date else '—' }}</td>
+          <td>{{ diagnostic.diagnostic_type or '—' }}</td>
+          <td>{{ diagnostic.type or '—' }}</td>
+          <td>{{ diagnostic.diameter if diagnostic.diameter is not none else '—' }}</td>
+          <td>{{ diagnostic.material or '—' }}</td>
+          <td>{{ diagnostic.distance | metres if diagnostic.distance is not none else '—' }}</td>
+          <td>{{ diagnostic.author or '—' }}</td>
+          <td>{{ diagnostic.area_name }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="10">Диагностики не найдены.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p>Суммарная дистанция по выбранным фильтрам: {{ summary.total_distance | metres }} м</p>
+<nav class="d-flex align-items-center gap-3" aria-label="Страницы диагностик">
+  {% if summary.page > 1 %}
+    <a href="{{ table_url(page=summary.page - 1) }}">Предыдущая</a>
+  {% endif %}
+  <span>Страница {{ summary.page }} из {{ summary.total_pages }}</span>
+  {% if summary.page < summary.total_pages %}
+    <a href="{{ table_url(page=summary.page + 1) }}">Следующая</a>
+  {% endif %}
+</nav>

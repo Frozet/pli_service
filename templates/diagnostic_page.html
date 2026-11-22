@@ -44,19 +44,22 @@
       <div class="container">
         <div class="d-flex justify-content-between mb-3">
             <!-- Left-aligned button -->
-            <a href="{{ url_for('view_diagnostics') }}">
+            <a href="{{ url_for('diagnostics.view_diagnostics') }}">
                 <button class="btn btn-primary">Назад к списку</button>
             </a>
             <!-- Right-aligned buttons -->
             <div>
-              <a href="{{ url_for('generate_pdf', diagnostic_id=diagnostic['id']) }}">
+              <a href="{{ url_for('diagnostics.generate_pdf', diagnostic_id=diagnostic['id']) }}">
                 <button class="btn btn-secondary">Загрузить отчет</button>
               </a>
-              {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                <a href="{{ url_for('change_diagnostic', diagnostic_id=diagnostic['id']) }}">
+              {% if account.role == 'User' or account.role == 'Admin'%}
+                <a href="{{ url_for('diagnostics.add_diagnostic', diagnostic_id=diagnostic['id']) }}">
                   <button class="btn btn-secondary">Изменить</button>
                 </a>
-                <button class="btn btn-danger" onclick="confirmDeletion()">Удалить</button>
+                <form class="d-inline-block" method="post" action="{{ url_for('diagnostics.delete_diagnostic', diagnostic_id=diagnostic.id) }}" onsubmit="return confirm('Удалить эту диагностику?')">
+                  {% include "_csrf.html" %}
+                  <button class="btn btn-danger" type="submit">Удалить</button>
+                </form>
               {% endif %}
             </div>
         </div>
@@ -64,6 +67,12 @@
           <!-- Левая часть: Детали диагностики -->
           <div class="details">
             <h2>Детали диагностики</h2>
+            {% if migration_issues %}
+              <div class="alert alert-warning" role="status">
+                Часть данных предыдущей версии требует сверки.
+                <ul class="mb-0">{% for issue in migration_issues %}<li>{{ issue.reason }}</li>{% endfor %}</ul>
+              </div>
+            {% endif %}
             <ul>
               <li><strong>Номер:</strong> {{ diagnostic['id'] }}</li>
               <li><strong>Название:</strong> {{ diagnostic['short_title'] }}</li>
@@ -72,45 +81,40 @@
               <li><strong>Тип:</strong> {{ diagnostic['type'] }}</li>
               <li><strong>Диаметр:</strong> {{ diagnostic['diameter'] }} мм</li>
               <li><strong>Материал:</strong> {{ diagnostic['material'] }}</li>
-              <li><strong>Дистанция:</strong> {{ diagnostic['distance'] }} м</li>
+              <li><strong>Дистанция:</strong> {{ diagnostic.distance | metres }} м</li>
               <li><strong>Диагностика проведена:</strong>
                 {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
                   {% if not loop.first %}, {% endif %}
-                  из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
+                  из {{ diagnostic['type'] }} {{ wells_firsts }} {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells | metres }} м до {{ diagnostic['type'] }} {{ wells_seconds }}
                 {% endfor %}
               </li>
               <li><strong>Обнаружено:</strong>
                 {% if problem_details %}
                   {% for problem, distance in problem_details %}
-                    {{ problem }} на расстоянии {{ distance }} м{% if not loop.last %},{% endif %}
+                    {% if not loop.first %}, {% endif %}
+                    {{ problem }} на расстоянии {{ distance | metres }} м
                   {% endfor %}
                 {% else %}
                   Проблем не обнаружено
                 {% endif %}
               </li>
-              
               <li><strong>Автор:</strong> {{ diagnostic['author'] }}</li>
             </ul>
-            {% if photos_paths %}
-              {% for photo_path in photos_paths %}
-                <img src="{{ url_for('static', filename=photo_path) }}" alt="Фото диагностики" class="img-size">
-              {% endfor %}
-            {% endif %}
+            {% for file in attachments %}
+              {% set file_url = url_for('diagnostics.attachment_file', diagnostic_id=diagnostic.id, attachment_id=file.id) %}
+              {% if file.kind == 'photo' %}
+                <img src="{{ file_url }}" alt="Фото диагностики" class="img-size" loading="lazy">
+              {% else %}
+                <p><a href="{{ file_url }}">Скачать график уклона (PDF)</a></p>
+              {% endif %}
+            {% endfor %}
           </div>
           <!-- Правая часть: График диагностики -->
           <div class="graph">
             <h2>График</h2>
-            <img src="data:image/png;base64,{{ plot_image }}" alt="График диагностики">
+            <img class="img-fluid" src="{{ url_for('diagnostics.diagnostic_graph', diagnostic_id=diagnostic.id, v=diagnostic.version) }}" alt="График диагностики">
           </div>
         </div>
       </div>
 
-      <script>
-        function confirmDeletion() {
-            if (confirm("Вы уверены, что хотите удалить эту диагностику?")) {
-                // Redirect to the delete route
-                window.location.href = "{{ url_for('delete_diagnostic', diagnostic_id=diagnostic['id']) }}";
-            }
-        }
-      </script>
       {% endblock %}

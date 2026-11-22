@@ -1,7 +1,8 @@
 {% extends "admin_base.html" %}
 
             {% block content %}
-            <form method="POST" action="{{ url_for('admin_edit_area_form', area_id=area['id']) }}">
+            <form method="POST" action="{{ url_for('admin.area_form', area_id=area['id']) }}">
+    {% include "_csrf.html" %}
                 <div class="form-group">
                     <label for="name">Мастер участка (писать без точек)</label>
                     <input type="text" class="form-control" id="name" name="name" value="{{ area['name'] }}">

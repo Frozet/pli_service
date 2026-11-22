@@ -1,103 +1,79 @@
-import matplotlib
-matplotlib.use('Agg')  # Используем 'Agg' бэкэнд для работы без GUI
-import matplotlib.pyplot as plt
-import io
+from functools import lru_cache
+from io import BytesIO
+from threading import Lock
 
-def generate_diagnostic_plot(diagnostic: dict) -> io.BytesIO:
-    distances = list(map(float, diagnostic['distance_between_wells'].split(',')))
-    slopes = list(map(str, diagnostic['slope_between_wells'].split(',')))
-    wells = diagnostic['count_of_well'].split(',')
-    if diagnostic['problems_distances']:
-        problems_distances = list(map(float, diagnostic['problems_distances'].split(',')))
-    total_distance = float(sum(distances))
-    if len(slopes) < 3:
-        plot_len = 4
-    else:
-        plot_len = (len(slopes) + 1) * 2
-    fig, ax = plt.subplots(figsize=(3, plot_len))
+from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 
-    # Словарь для легенды
-    legend_elements = []
-    current_distance = 0
+from diagnostic_data import MAX_SPANS
 
-    # Отрисовка линии пролета
-    for i, distance in enumerate(distances):
-        match slopes[i]:
-            case 'отличный':
-                color = '#009900'
-                description = 'Отличный пролет'
-            case 'в норме':
-                color = '#AADD23'
-                description = 'Пролет в норме'
-            case 'в горизонте':
-                color = '#FFD700'
-                description = 'Пролет в горизонте'
-            case 'в контруклоне':
-                color = '#FF0033'
-                description = 'Пролет в контруклоне'
-        ax.plot([0, 0], [current_distance, current_distance + distance], color=color, lw=4)
-        current_distance += distance
-
-        # Добавляем описание в легенду (один раз для каждого типа)
-        if description not in [element.get_label() for element in legend_elements]:
-            legend_elements.append(plt.Line2D([0], [0], color=color, lw=4, label=description))
-
-   # Отрисовка колодцев поверх линии
-    current_distance, i = 0, 0
-    for well_f in wells[:-1:2]:
-        well_l = wells[i+1]
-        ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
-        ax.text(0.1, current_distance, f'{diagnostic["type"]} {well_f}', va='center', fontsize=10, zorder=4)
-        # Обновляем текущее расстояние
-        current_distance += distances[i//2]
-        if i + 1 != len(wells) - 1: # Рисуем колодец, если он не последний
-            if well_l != wells[i+2]: # Рисуем колодец, только если он не дублируется
-                ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
-                ax.text(-0.4, current_distance, f'{diagnostic["type"]} {well_l}', va='center', fontsize=10, zorder=4)
-        i += 2
-
-    # Рисуем последний колодец
-    ax.scatter([0], [current_distance], color='#3399FF', s=120, zorder=3)
-    ax.text(0.1, current_distance, f'{diagnostic["type"]} {wells[-1]}', va='center', fontsize=10, zorder=4)
-
-    # Отрисовка проблем поверх линии
-    if diagnostic['problems_distances']:
-        for i, problem_distance in enumerate(problems_distances):
-            ax.scatter([0], [problem_distance], color='#FF9900', s=30, marker='s', zorder=3)
-
-            # Добавляем проблему в легенду (один раз)
-            if 'Проблема' not in [element.get_label() for element in legend_elements]:
-                legend_elements.append(plt.Line2D([0], [0], marker='s', color='#FF9900', markersize=6, label='Проблема'))
-
-     # Добавляем колодец в легенду (один раз)
-    if 'Колодец' not in [element.get_label() for element in legend_elements]:
-        legend_elements.append(plt.Line2D([0], [0], marker='o', color='#3399FF', markersize=10, label='Колодец'))
+STYLES = {
+    "отличный": ("#009900", "Отличный пролёт"),
+    "в норме": ("#AADD23", "Пролёт в норме"),
+    "в горизонте": ("#FFD700", "Пролёт в горизонте"),
+    "в контруклоне": ("#FF0033", "Пролёт в контруклоне"),
+}
+UNKNOWN = ("#808080", "Уклон не указан")
+render_lock = Lock()
 
 
-    # Настройка шкалы расстояний
-    ax.set_xlim([-1, 1])
-    # Если дистанция меньше 20 метров, делаем отсупы по оси y по 1м, иначе по 5% от дистанции
-    if total_distance < 20:
-        start_point = -1
-        end_point = 1
-    else:
-        start_point = -(total_distance // 20)
-        end_point = total_distance // 20
-    ax.set_ylim([start_point, total_distance + end_point])
-    ax.set_ylabel('Расстояние (м)')
-    ax.axis('on')
+@lru_cache(maxsize=32)
+def generate_diagnostic_plot(pipe_type, spans, defects, *, truncated=False):
+    with render_lock:
+        return render_plot(pipe_type, spans, defects, truncated)
 
-    if plot_len == 4:
-        leg_pos = -0.3
-    else:
-        leg_pos = -0.15
 
-    # Добавляем легенду под графиком
-    ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, leg_pos), fontsize=8, frameon=False)
+def render_plot(pipe_type, spans, defects, truncated):
+    figure = Figure(figsize=(4, min(12, max(4, len(spans) * 0.7))), dpi=100)
+    ax = figure.subplots()
+    figure.subplots_adjust(bottom=0.24, left=0.19, right=0.92)
+    try:
+        if not spans:
+            ax.text(0.5, 0.5, "Нет данных о пролётах", ha="center", va="center", transform=ax.transAxes)
+            ax.set_axis_off()
+        else:
+            draw_spans(ax, pipe_type, spans[:MAX_SPANS], defects)
+            if truncated:
+                ax.set_title("График показан частично", fontsize=9)
+        with BytesIO() as output:
+            figure.savefig(output, format="png")
+            return output.getvalue()
+    finally:
+        figure.clear()
 
-    
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    buf.seek(0)
 
-    return buf
+def draw_spans(ax, pipe_type, spans, defects):
+    offset = 0.0
+    legend = {}
+    wells = []
+    for span in spans:
+        color, label = STYLES.get(span.slope, UNKNOWN)
+        endpoint = offset + float(span.length)
+        ax.plot([0, 0], [offset, endpoint], color=color, lw=4)
+        if label not in legend:
+            legend[label] = Line2D([0], [0], color=color, lw=4, label=label)
+        if not wells or wells[-1] != (offset, span.first_well):
+            wells.append((offset, span.first_well))
+        wells.append((endpoint, span.last_well))
+        offset = endpoint
+
+    ax.scatter([0] * len(wells), [position for position, _ in wells], color="#3399FF", s=45, zorder=3)
+    legend["Колодец"] = Line2D([], [], marker="o", color="#3399FF", linestyle="", label="Колодец")
+    last_position = None
+    for position, name in wells:
+        left = position == last_position
+        label = f"{pipe_type or ''} {name}".strip()
+        if len(label) > 32:
+            label = label[:31] + "…"
+        ax.annotate(label, (0, position), xytext=(-7 if left else 7, 0),
+                    textcoords="offset points", ha="right" if left else "left", va="center",
+                    fontsize=8, parse_math=False)
+        last_position = position
+    marks = [float(distance) for distance in defects if distance <= offset]
+    if marks:
+        ax.scatter([0] * len(marks), marks, color="#FF9900", s=22, marker="s", zorder=4)
+        legend["Дефект"] = Line2D([], [], marker="s", color="#FF9900", linestyle="", label="Дефект")
+    pad = max(1, offset / 20)
+    ax.set(ylim=(-pad, offset + pad), xlim=(-1, 1), ylabel="Расстояние (м)", xticks=[])
+    ax.legend(handles=legend.values(), loc="upper center", bbox_to_anchor=(0.5, -0.03),
+              fontsize=8, frameon=False)

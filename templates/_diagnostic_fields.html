@@ -1,0 +1,47 @@
+{% macro named_select(id, label, options, current) %}
+  <label class="form-label" for="{{ id }}">{{ label }}</label>
+  <select class="form-select" id="{{ id }}" name="{{ id }}" required>
+    {% if current and current not in options %}
+      <option value="{{ current }}" selected>{{ current }}</option>
+    {% endif %}
+    {% for value, caption in options.items() %}
+      <option value="{{ value }}" {% if value == current %}selected{% endif %}>{{ caption }}</option>
+    {% endfor %}
+  </select>
+{% endmacro %}
+
+{% macro span(index, item, flows, slopes) %}
+  {% set first, flow, slope, length, last = item %}
+  <fieldset class="border rounded p-3 mb-3" data-block>
+    <legend class="float-none w-auto px-1 fs-6">Пролёт <span data-block-number>{{ index + 1 if index is number }}</span></legend>
+    <div class="row g-2">
+      <div class="col-sm-6">
+        <label class="form-label" for="well_{{ index }}">Начальный колодец</label>
+        <input class="form-control" id="well_{{ index }}" name="well_{{ index }}" value="{{ first }}" maxlength="255" required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label" for="well2_{{ index }}">Конечный колодец</label>
+        <input class="form-control" id="well2_{{ index }}" name="well2_{{ index }}" value="{{ last }}" maxlength="255" required>
+      </div>
+      <div class="col-sm-4">
+        <label class="form-label" for="span_{{ index }}">Длина, м</label>
+        <input type="number" class="form-control" id="span_{{ index }}" name="span_{{ index }}" value="{{ length }}" min="0.001" step="0.001" max="1000000" required>
+      </div>
+      <div class="col-sm-4">{{ named_select('slope_' ~ index, 'Уклон', slopes, slope) }}</div>
+      <div class="col-sm-4">{{ named_select('flow_' ~ index, 'Течение', flows, flow) }}</div>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-danger mt-2" data-remove>Убрать пролёт</button>
+  </fieldset>
+{% endmacro %}
+
+{% macro defect(index, item) %}
+  {% set description, distance = item %}
+  <fieldset class="border rounded p-3 mb-3" data-block>
+    <legend class="float-none w-auto px-1 fs-6">Дефект <span data-block-number>{{ index + 1 if index is number }}</span></legend>
+    <label class="form-label" for="problem_{{ index }}">Описание</label>
+    <textarea class="form-control mb-2" id="problem_{{ index }}" name="problem_{{ index }}" maxlength="2000" rows="2">{{ description }}</textarea>
+    <label class="form-label" for="problemDistance_{{ index }}">Расстояние от начала диагностики, м</label>
+    <input type="number" class="form-control" id="problemDistance_{{ index }}" name="problemDistance_{{ index }}" value="{{ distance }}" min="0" step="0.001" max="1000000">
+    <button type="button" class="btn btn-sm btn-outline-danger mt-2" data-remove>Убрать дефект</button>
+  </fieldset>
+{% endmacro %}

@@ -24,20 +24,12 @@
                 </table>
             </div>
                     <!-- Кнопка "Изменить" и "Удалить", которая ведет на страницу редактирования участка и на страницу удаления -->
-                        <a href="{{ url_for('admin_edit_area_form', area_id=area['id']) }}"><button class="btn btn-primary">Изменить данные</button></a>
-                        <button class="btn btn-danger" onclick="confirmDeletion()">Удалить участок</button>
+                        <a href="{{ url_for('admin.area_form', area_id=area['id']) }}"><button class="btn btn-primary">Изменить данные</button></a>
+                        <form class="d-inline-block" method="post" action="{{ url_for('admin.admin_delete_area', area_id=area.id) }}" onsubmit="return confirm('Удалить этот участок?')">
+        {% include "_csrf.html" %}
+        <button class="btn btn-danger" type="submit">Удалить участок</button>
+    </form>
                     </div>
             </div>
             {% endblock %}
-
-    {% block script %}
-    <script>
-        function confirmDeletion() {
-            if (confirm("Вы уверены, что хотите удалить участок {{ area['name'] }}.?")) {
-                // Redirect to the delete route
-                window.location.href = "{{ url_for('admin_delete_area', area_id=area['id']) }}";
-            }
-        }
-    </script>
-    {% endblock %}
 

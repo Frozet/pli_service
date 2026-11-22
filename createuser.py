@@ -1,37 +1,43 @@
-import os
-from datetime import datetime
-import psycopg2
-import hashlib
+"""Create or restore an administrator through an explicit, interactive command."""
 
-def create_user(username: str, password: str, full_name: str, role: str, areaid: int=None) -> None:
-    # Хеширование пароля
-    hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
+from getpass import getpass
 
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        database=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD')
-    )
+import click
+from psycopg2.errors import UniqueViolation
 
-    user_timestampdata = datetime.now()
-    # Создание курсора
-    c = conn.cursor()
+from security import hash_password
 
-    # Проверяем, существует ли уже username
-    c.execute('SELECT COUNT(*) FROM users WHERE username = %s', (username,))
-    count = c.fetchone()[0]
 
-    if count == 0:
-        # Если такого username нет, вставляем запись
-        c.execute(
-            'INSERT INTO users (username, password, full_name, role, areaid, timestampdata) VALUES (%s, %s, %s, %s, %s, %s)', 
-            (username, hashed_password, full_name, role, areaid, user_timestampdata)
-        )
+@click.command("create-admin")
+@click.option("--username", prompt="Логин")
+@click.option("--full-name", prompt="Полное имя")
+@click.option("--reset-disabled", is_flag=True, help="Replace the password of a disabled administrator.")
+def create_admin(username, full_name, reset_disabled):
+    from flask import current_app
 
-    # Сохранение изменений и закрытие соединения с базой данных
-    conn.commit()
-    conn.close()
-
-# Впишите нужные логин, пароль, полное имя, роль(Admin, User или Viewer) и id участка(для Viewer)
-# create_user('testuser', 'testuser', 'Тестов Тест Тестович', 'Viewer', '1')
+    username, full_name = username.strip(), full_name.strip()
+    if not all(0 < len(field) <= 255 and "\0" not in field for field in (username, full_name)):
+        raise click.ClickException("Логин и имя должны содержать от 1 до 255 символов.")
+    password = getpass("Пароль: ")
+    if password != getpass("Повторите пароль: "):
+        raise click.ClickException("Пароли не совпадают.")
+    try:
+        hashed = hash_password(password)
+        with current_app.extensions["db"].transaction() as cursor:
+            if reset_disabled:
+                cursor.execute("""
+                    UPDATE users SET password=%s, full_name=%s, timestampdata=CURRENT_TIMESTAMP
+                    WHERE username=%s AND role='Admin' AND password IS NULL
+                """, (hashed, full_name, username))
+                if not cursor.rowcount:
+                    raise click.ClickException("Отключённая учётная запись администратора не найдена.")
+            else:
+                cursor.execute("""
+                    INSERT INTO users (username, full_name, role, password, timestampdata)
+                    VALUES (%s, %s, 'Admin', %s, CURRENT_TIMESTAMP)
+                """, (username, full_name, hashed))
+    except ValueError as error:
+        raise click.ClickException(str(error)) from error
+    except UniqueViolation as error:
+        raise click.ClickException("Учётная запись с этим логином уже существует.") from error
+    click.echo("Учётная запись администратора готова.")

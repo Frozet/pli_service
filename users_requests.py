@@ -1,89 +1,33 @@
-from psycopg2.extras import RealDictCursor
-from datetime import datetime
-from flask import session
-from db_requests import get_db_connection
+from diagnostic_data import FormError, positive_int, required
+from security import ROLES, hash_password
 
-# Получение данных для идентификации
-def get_user_data(username: str) -> dict:
-    # устанавливаем соединение с БД
-        conn = get_db_connection()
-        c = conn.cursor(cursor_factory=RealDictCursor)  # используем RealDictCursor
-        # создаем запрос для поиска пользователя по username,
-        # если такой пользователь существует, то получаем все данные id, password
-        c.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user = c.fetchone()
-        # закрываем подключение БД
-        conn.close()
-        return user
 
-# Получение пароля из бд
-def get_user_password(user_id: int) -> str:
-    # Проверяем текущий пароль
-    conn = get_db_connection()
-    c = conn.cursor(cursor_factory=RealDictCursor)
-    c.execute('SELECT password FROM users WHERE id = %s', (user_id,))
-    stored_password = c.fetchone()['password']
-    return stored_password
+def account_fields(form):
+    username = required(form, "username", "Логин")
+    full_name = required(form, "full_name", "Полное имя")
+    role = required(form, "role", "Роль")
+    if role not in ROLES:
+        raise FormError("Выберите допустимую роль.")
+    areaid = positive_int(form.get("areaid"), "Участок") if role == "Viewer" else None
+    return username, full_name, role, areaid
 
-# Изменение пароля
-def update_user_password(hashed_new_password: str, user_id: int) -> str:
-    conn = get_db_connection()
-    c = conn.cursor(cursor_factory=RealDictCursor)
-    c.execute('UPDATE users SET password = %s WHERE id = %s', (hashed_new_password, user_id))
-    conn.commit()
-    conn.close()
-    return 'Пароль успешно изменен.'
 
-# Получение данных всех пользователей
-def get_users() -> list:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    # Получение поля area_name по внешнему ключу и указание стандартного значения
-    cur.execute('''
-                SELECT users.id, users.username, users.full_name, users.role, users.timestampdata,
-                    COALESCE(areas.name, 'Все участки') AS area_name
-                FROM users
-                LEFT JOIN areas ON users.areaid = areas.id
-                ORDER BY id ASC
-    ''')
-    users = cur.fetchall()
-    conn.close()
-    return users
+def get_users(cursor, user_id=None):
+    query = """
+        SELECT u.id, u.username, u.full_name, u.role, u.timestampdata, u.areaid,
+               COALESCE(a.name, CASE WHEN u.role = 'Viewer' THEN 'Не назначен'
+                                     ELSE 'Все участки' END) AS area_name
+        FROM users u LEFT JOIN areas a ON a.id = u.areaid
+    """
+    if user_id is not None:
+        cursor.execute(query + " WHERE u.id = %s", (user_id,))
+        return cursor.fetchone()
+    cursor.execute(query + " ORDER BY u.id")
+    return cursor.fetchall()
 
-# Получение данных пользователя
-def get_user(user_id: int) -> dict:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('''
-                SELECT users.id, users.username, users.full_name, users.role, users.timestampdata,
-                    COALESCE(areas.name, 'Все участки') AS area_name
-                FROM users
-                LEFT JOIN areas ON users.areaid = areas.id
-                WHERE users.id = %s
-    ''', (user_id,))
-    user = cur.fetchone()
-    conn.close()
-    return user
 
-# Редактирование данных пользователя
-def update_user(user_id: int, username: str, full_name: str, role: str, areaid: str='') -> None:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    user_timestampdata = datetime.now()
-    cur.execute("""
-        UPDATE users SET username = %s, full_name = %s, role = %s, areaid = %s, timestampdata = %s
-        WHERE id = %s
-    """, (username, full_name, role, areaid, user_timestampdata, user_id))
-    
-    conn.commit()
-    conn.close()
-    return None
-
-# Удаление пользователя
-def delete_user(user_id: int) -> None:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
-    conn.commit()
-    conn.close()
-    return None
+def create_user(cursor, username, full_name, role, areaid, password):
+    cursor.execute("""
+        INSERT INTO users (username, full_name, role, areaid, password, timestampdata)
+        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+    """, (username, full_name, role, areaid, hash_password(password)))

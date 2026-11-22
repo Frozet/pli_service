@@ -5,7 +5,7 @@
     <title>Отчет по диагностике</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "DejaVu Sans", sans-serif;
         }
         .header {
             display: flex;
@@ -107,7 +107,7 @@
         </tr>
         <tr>
             <th>Мастер участка</th>
-            <td>{{ area['name'] }}.</td>
+            <td>{{ diagnostic.area_name or '—' }}</td>
         </tr>
         <tr>
             <th>Дата</th>
@@ -127,7 +127,7 @@
         </tr>
         <tr>
             <th>Дистанция</th>
-            <td>{{ diagnostic['distance'] }} м</td>
+            <td>{{ diagnostic.distance | metres }} м</td>
         </tr>
     </table>
 
@@ -136,7 +136,8 @@
         <strong>Диагностика проведена:</strong>
         <p>
             {% for wells_firsts, flows, slope_between_wells, distances_between_wells, wells_seconds in wells_details %}
-                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells }} м до <span class="highlight"> {{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>{% if not loop.last %},{% endif %}
+                {% if not loop.first %}, {% endif %}
+                из <span class="highlight">{{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_firsts }}</span> {{ flows }}, уклон {{ slope_between_wells }}, на расстояние {{ distances_between_wells | metres }} м до <span class="highlight"> {{ diagnostic['type'] }}</span> <span class="highlight">{{ wells_seconds }}</span>
             {% endfor %}
         </p>
     </div>
@@ -145,11 +146,12 @@
         <strong>Обнаружено:</strong>
         <p>
             {% if problem_details %}
-              {% for problem, distance in problem_details %}
-                {{ problem }} на расстоянии {{ distance }} м
-              {% endfor %}
+                {% for problem, distance in problem_details %}
+                    {% if not loop.first %}, {% endif %}
+                    {{ problem }} на расстоянии {{ distance | metres }} м
+                {% endfor %}
             {% else %}
-              Проблем не обнаружено
+                Проблем не обнаружено
             {% endif %}
         </p>
     </div>
@@ -157,18 +159,21 @@
     <!-- Блок для графика -->
     <div class="graph">
         <h2>График</h2>
-        <img src="data:image/png;base64,{{ plot_image }}" alt="График диагностики">
+        <img src="{{ plot_image }}" alt="График диагностики">
     </div>
     <!-- Блок для фотографий -->
     {% if photos_paths %}
         <div class="photo-gallery">
             <h2>Фотографии</h2>
             {% for photo_path in photos_paths %}
-                <img src="{{ photo_path }}" alt="Фото диагностики" class="img-size" loading="lazy">
+                <img src="{{ photo_path }}" alt="Фото диагностики" class="img-size">
             {% endfor %}
         </div>
     {% endif %}
 
+
+    {% if migration_issues %}<p>Часть данных предыдущей версии требует сверки.</p>{% endif %}
+    {% if missing_files %}<p>Недоступных или повреждённых вложений: {{ missing_files }}.</p>{% endif %}
     <!-- Дата обращения -->
     <div class="footer">
         Дата обращения: {{ current_date }}

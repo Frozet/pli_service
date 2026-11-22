@@ -18,14 +18,14 @@
                             {% for area in areas %}
                             <tr>
                                 <td>{{ area['id'] }}</td>
-                                <td><a href="{{ url_for('admin_edit_area', area_id=area['id']) }}">{{ area['name'] }}.</a></td>
+                                <td><a href="{{ url_for('admin.admin_edit_area', area_id=area['id']) }}">{{ area['name'] }}.</a></td>
                                 <td>{{ area['timestampdata'] }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <a href="{{ url_for('admin_add_area') }}"><button class="btn btn-primary">Добавить участок</button></a>
+                <a href="{{ url_for('admin.area_form') }}"><button class="btn btn-primary">Добавить участок</button></a>
               </div>
             {% endblock %}
 
