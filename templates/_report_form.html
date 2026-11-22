@@ -1,0 +1,9 @@
+<form method="get" action="{{ url_for('diagnostics.annual_report') }}" class="d-flex align-items-center gap-2">
+  <label for="report-year" class="visually-hidden">Год отчёта</label>
+  <select id="report-year" name="year" class="form-select w-auto">
+    {% for year in range(current_year, current_year - 10, -1) %}
+      <option value="{{ year }}">{{ year }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-secondary" type="submit">Годовой отчёт</button>
+</form>

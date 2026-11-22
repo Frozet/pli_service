@@ -1,0 +1,14 @@
+.git
+.github
+**/.DS_Store
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.venv
+instance
+secrets
+.env
+static/uploads
+static/secret_key.txt
+static/yandex_api_key.txt
+tests

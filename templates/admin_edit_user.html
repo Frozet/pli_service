@@ -35,24 +35,14 @@
                     </tr>
                 </table>
             </div>
-                {% if user['role'] != 'Admin' %}
                     <div>
                     <!-- Кнопка "Изменить", которая ведет на страницу редактирования пользователя -->
-                        <a href="{{ url_for('admin_edit_user_form', user_id=user['id']) }}"><button class="btn btn-primary">Изменить данные</button></a>
-                        <button class="btn btn-danger" onclick="confirmDeletion()">Удалить пользователя</button>
+                        <a href="{{ url_for('admin.user_form', user_id=user['id']) }}"><button class="btn btn-primary">Изменить данные</button></a>
+                        {% if user.id != account.id %}<form class="d-inline-block" method="post" action="{{ url_for('admin.admin_delete_user', user_id=user.id) }}" onsubmit="return confirm('Удалить этого пользователя?')">
+        {% include "_csrf.html" %}
+        <button class="btn btn-danger" type="submit">Удалить пользователя</button>
+    </form>{% endif %}
                     </div>
-                {% endif %}
             </div>
             
             {% endblock %}
-    {% block script %}
-    <script>
-        function confirmDeletion() {
-            if (confirm("Вы уверены, что хотите удалить пользователя {{ user['username'] }}?")) {
-                // Redirect to the delete route
-                window.location.href = "{{ url_for('admin_delete_user', user_id=user['id']) }}";
-            }
-        }
-    </script>
-    {% endblock %}
-

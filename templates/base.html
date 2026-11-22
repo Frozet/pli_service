@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="ru" data-bs-theme="auto">
   <head>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_api_key }}&lang=ru_RU" type="text/javascript"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}Название страницы{% endblock %}</title>
@@ -9,8 +8,6 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='favicon-32x32.png') }}" sizes="32x32" type="image/png">
     <link rel="icon" href="{{ url_for('static', filename='favicon-16x16.png') }}" sizes="16x16" type="image/png">
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/headers/">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
 <link href="{{ url_for('static', filename='assets/dist/css/bootstrap.min.css') }}" rel="stylesheet">
     
     <style>
@@ -53,21 +50,21 @@
 
         <div class="container">
             <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">    <a href="{{ url_for('index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+
                 <span class="fs-4">PLI Service</span>
             </a>    <ul class="nav nav-pills">
-                {% if session['role'] == 'User' or session['role'] == 'Admin'%}
-                  <li class="nav-item"><a href="{{ url_for('add_diagnostic', diagnostic_id=0) }}" class="nav-link active" aria-current="page">Добавить</a></li>
+                {% if account.role == 'User' or account.role == 'Admin'%}
+                  <li class="nav-item"><a href="{{ url_for('diagnostics.add_diagnostic', diagnostic_id=0, _method='GET') }}" class="nav-link active" aria-current="page">Добавить</a></li>
                 {% endif %}
-                <li class="nav-item"><a href="{{ url_for('view_diagnostics') }}" class="nav-link">Диагностики</a></li>
-                <li class="nav-item"><a href="{{ url_for('map_page') }}" class="nav-link">Карта</a></li>
+                <li class="nav-item"><a href="{{ url_for('diagnostics.view_diagnostics') }}" class="nav-link">Диагностики</a></li>
+                <li class="nav-item"><a href="{{ url_for('diagnostics.map_page') }}" class="nav-link">Карта</a></li>
                 <!--<li class="nav-item"><a href="#" class="nav-link">Настройки</a></li>-->
                 <li class="nav-item"><a href="{{ url_for('about') }}" class="nav-link">О приложении</a></li>
-                <li class="nav-item"><a href="{{ url_for('admin_panel') }}" class="nav-link">{% if session['role'] == 'Admin' %}Панель администратора{% else %}Аккаунт{% endif %}</a></li>
+                <li class="nav-item"><a href="{{ url_for('admin.admin_panel') }}" class="nav-link">{% if account.role == 'Admin' %}Панель администратора{% else %}Аккаунт{% endif %}</a></li>
             </ul>
             </header>
         </div>
-        <div class="content container mt-5">{% block content %}{% endblock %}</div>
+        <div class="content container mt-5">{% include "_messages.html" %}{% block content %}{% endblock %}</div>
         
     </main>
       <footer class="footer mt-auto py-3 bg-light">

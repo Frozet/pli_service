@@ -1,47 +1,95 @@
 services:
-  web:
-    build: .
-    command: python app.py
+  postgres:
+    image: postgres:17.12-bookworm
+    environment:
+      POSTGRES_DB: pli_service
+      POSTGRES_USER: pli_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_owner_password
+    secrets:
+      - db_owner_password
     volumes:
-      - .:/app
-    ports:
-      - "5001:5001"
+      - pgdata17:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "pli_owner", "-d", "pli_service"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [database]
+
+  migrate:
+    build: .
+    image: pli-service:local
+    command: ["python", "createdb.py", "--provision-app-role"]
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_DB: pli_service
-      POSTGRES_USER: pli_admin
-      POSTGRES_PASSWORD: pli_admin
+      POSTGRES_USER: pli_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_owner_password
+      PLI_APP_USER: pli_app
+      PLI_APP_PASSWORD_FILE: /run/secrets/db_app_password
+    secrets:
+      - db_owner_password
+      - db_app_password
     depends_on:
-      - postgres
-    networks:
-      - backend
+      postgres:
+        condition: service_healthy
+    networks: [database]
 
-  postgres:
-    image: postgres:13
+  web:
+    build: .
+    image: pli-service:local
     environment:
+      POSTGRES_HOST: postgres
       POSTGRES_DB: pli_service
-      POSTGRES_USER: pli_admin
-      POSTGRES_PASSWORD: pli_admin
+      POSTGRES_USER: pli_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_app_password
+      SECRET_KEY_FILE: /run/secrets/flask_secret_key
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-1}
+      TRUST_PROXY: "1"
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-}
+      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY:-}
+      UPLOAD_FOLDER: /var/lib/pli/uploads
+      LEGACY_UPLOAD_FOLDER: /legacy-static/uploads
+    secrets:
+      - db_app_password
+      - flask_secret_key
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - backend
+      - uploads:/var/lib/pli/uploads
+      - ./static:/legacy-static:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:5001/ready', timeout=3).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks: [database, proxy]
 
   nginx:
-    image: nginx:latest
+    image: nginx:1.30.7-alpine3.24
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     ports:
-      - "80:80"  # Экспонируем порт 80 для доступа к приложению через Nginx
+      - "127.0.0.1:${PLI_HTTP_PORT:-8080}:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # Подключаем конфигурационный файл Nginx
-    networks:
-      - backend
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks: [proxy]
+
+secrets:
+  flask_secret_key:
+    file: ./secrets/flask_secret_key.txt
+  db_owner_password:
+    file: ./secrets/db_owner_password.txt
+  db_app_password:
+    file: ./secrets/db_app_password.txt
 
 volumes:
-  pgdata:
+  pgdata17:
+  uploads:
+
 networks:
-  backend:
-    driver: bridge
+  database:
+    internal: true
+  proxy:

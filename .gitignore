@@ -9,3 +9,11 @@ areas.txt
 .idea/
 __pycache__/
 uploads/
+.pytest_cache/
+.ruff_cache/
+.venv/
+instance/
+static/uploads/
+.env
+secrets/
+.DS_Store

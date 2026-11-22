@@ -21,7 +21,7 @@
                             {% for user in users %}
                             <tr>
                                 <td>{{ user['id'] }}</td>
-                                <td><a href="{{ url_for('admin_edit_user', user_id=user['id']) }}">{{ user['username'] }}</a></td>
+                                <td><a href="{{ url_for('admin.admin_edit_user', user_id=user['id']) }}">{{ user['username'] }}</a></td>
                                 <td>{{ user['full_name'] }}</td>
                                 <td>{% if user['role'] == 'Admin' %}Админ{% elif user['role'] == 'User' %}Редактор{% else %}Пользователь{% endif %}</td>
                                 <td>{% if user['area_name'] != 'Все участки' %}{{ user['area_name'] }}.{% else %}{{ user['area_name'] }}{% endif %}</td>
@@ -31,7 +31,7 @@
                         </tbody>
                     </table>
                 </div>
-                <a href="{{ url_for('admin_add_user') }}"><button class="btn btn-primary">Добавить пользователя</button></a>
+                <a href="{{ url_for('admin.user_form') }}"><button class="btn btn-primary">Добавить пользователя</button></a>
               </div>
             {% endblock %}
 

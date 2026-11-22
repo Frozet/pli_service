@@ -1,96 +1,17 @@
 {% extends "base.html" %}
-
-    {% block title %}Карта диагностик{% endblock %}
-
-       {% block style %}
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-      
-      .main-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-        margin-top: 10px;
-      }
-      {% endblock %}
-
-        {% block content %}
-        <div class="main-content">
-          <div id="map" style="width: 80%; height: 600px"></div>
-            <script type="text/javascript">
-                ymaps.ready(init);
-                    function init() {
-                        // Создание объекта карты с центром на Иркутске
-                        var myMap = new ymaps.Map('map', {
-                                center: [52.27,104.31],
-                                zoom: 13
-                            }),
-                            
-                            // Передаем данные из Flask в json и записываем в переменную
-                            diagnostics = {{ diagnostics|tojson|safe }};
-                            {% for diagnostic in diagnostics %}
-                                // В цикле генерируем маркеры на карте
-                                diagnostics.forEach(function(diagnostic) {
-                                    var id = diagnostic.id;
-                                    var title = diagnostic.short_title;
-                                    var diagnostic_type = diagnostic.diagnostic_type;
-                                    var coordinates = diagnostic.coordinates;
-                                    var lst_coordinates = coordinates.split(',').map(Number);
-                                    
-                                    // Меняем цвет маркера, в зависимости от типа диагностики
-                                    switch (diagnostic_type) {
-                                        case 'Без повреждений':
-                                            var ico_link = '/static/assets/mark1.png';
-                                            break;
-                                        case 'Повреждение':
-                                            var ico_link = '/static/assets/mark2.png';
-                                            break;
-                                        case 'Найден колодец':
-                                            var ico_link = '/static/assets/mark3.png';
-                                            break;
-                                        case 'Приемка':
-                                            var ico_link = '/static/assets/mark4.png';
-                                            break;
-                                        default:
-                                            var ico_link = '/static/assets/mark1.png';
-                                    }
-
-                                    // Создание маркера с ссылкой в названии
-                                    var myPlacemark = new ymaps.Placemark(lst_coordinates, {
-                                        hintContent: title,
-                                        balloonContent: '<strong><a href="/diagnostic_page/' + id + '">' + title + '</a></strong>'
-                                    }, {
-                                        // Опции.
-                                        // Необходимо указать данный тип макета.
-                                        iconLayout: 'default#image',
-                                        // Своё изображение иконки метки.
-                                        iconImageHref: ico_link,
-                                        // Размеры метки.
-                                        iconImageSize: [18, 18],
-                                        // Смещение левого верхнего угла иконки относительно
-                                        // её "ножки" (точки привязки).
-                                        iconImageOffset: [-10, -10]
-                                    });
-                                
-                                    myMap.geoObjects.add(myPlacemark);
-                                });
-                            {% endfor %}
-                    }
-            </script>
-            <br>
-        </div>
-        {% endblock %}
-
+{% block title %}Карта диагностик{% endblock %}
+{% block script %}{% include "_map_sdk.html" %}{% endblock %}
+{% block content %}
+  <h1>Карта диагностик</h1>
+  {% if yandex_api_key %}
+    <div id="diagnostic-map" class="ratio ratio-21x9"></div>
+    <script type="application/json" id="map-diagnostics">{{ diagnostics | tojson }}</script>
+    <div id="map-icons" hidden
+      data-mark1="{{ url_for('static', filename='assets/mark1.png') }}"
+      data-mark2="{{ url_for('static', filename='assets/mark2.png') }}"
+      data-mark3="{{ url_for('static', filename='assets/mark3.png') }}"
+      data-mark4="{{ url_for('static', filename='assets/mark4.png') }}"></div>
+  {% endif %}
+  <p id="map-fallback" {% if yandex_api_key %}hidden{% endif %}>Карта сейчас недоступна. <a href="{{ url_for('diagnostics.view_diagnostics') }}">Открыть список диагностик</a></p>
+{% endblock %}
+{% block script_second %}<script src="{{ url_for('static', filename='diagnostic-map.js') }}"></script>{% endblock %}
