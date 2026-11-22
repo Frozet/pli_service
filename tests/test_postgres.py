@@ -1,3 +1,5 @@
+import json
+import re
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
@@ -72,11 +74,19 @@ def test_scope_validation_and_session_revocation(installed, diagnostic_form_data
 
     assert editor.get(f"/diagnostic/{second}/attachments/{file_id}").data == sample_png()
     viewer = login(app, "viewer")
-    for path in ["/view_diagnostics?search_query=запись", "/annual_report?year=2024", "/map"]:
+    for path in ["/view_diagnostics?search_query=запись", "/annual_report?year=2024"]:
         page = viewer.get(path)
         assert page.status_code == 200
         assert "Доступная запись" in page.text
         assert "Чужая запись" not in page.text
+
+    map_page = viewer.get("/map")
+    assert map_page.status_code == 200
+    payload = re.search(r'<script\b[^>]*\bid="map-diagnostics"[^>]*>(.*?)</script>', map_page.text, flags=re.DOTALL)
+    assert payload is not None
+    records = json.loads(payload.group(1))
+    assert [(record["id"], record["short_title"]) for record in records] == [(first, "Доступная запись")]
+
     page = viewer.get("/view_diagnostics?start_date=2024-03-01&end_date=2024-03-10")
     assert "20.5 м" in page.text and "start_date=2024-03-01" in page.text
     assert viewer.get(f"/diagnostic_page/{first}").status_code == 200
