@@ -99,7 +99,7 @@ def create_app(config=None):
 
     @app.get("/ready")
     def ready():
-        with db.transaction() as cursor:
+        with current_app.extensions["db"].transaction() as cursor:
             cursor.execute("SELECT 1 FROM pli_schema_migrations WHERE version = %s", (SCHEMA_VERSION,))
             if not cursor.fetchone():
                 abort(503)
